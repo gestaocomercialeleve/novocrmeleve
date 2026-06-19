@@ -255,9 +255,12 @@ tbody tr:hover{background:#FAFBFD;}
 
 /* ===================== ORÇAMENTO BUILDER ===================== */
 .itens-orcamento{border:1px solid var(--borda);border-radius:10px;overflow:hidden;margin-top:6px;}
-.linha-item-orc{display:grid;grid-template-columns:2.2fr .8fr .9fr .9fr 32px;gap:8px;padding:9px 10px;align-items:center;border-bottom:1px solid #EEF1F6;}
-.linha-item-orc:last-child{border-bottom:none;}
-.linha-item-orc select,.linha-item-orc input{padding:7px 9px;font-size:13px;border:1.3px solid var(--borda);border-radius:7px;width:100%;}
+.bloco-item-orc{padding:9px 10px;border-bottom:1px solid #EEF1F6;}
+.bloco-item-orc:last-child{border-bottom:none;}
+.linha-item-orc{display:grid;grid-template-columns:2.2fr .8fr .9fr .9fr 32px;gap:8px;align-items:center;}
+.linha-item-orc-atributos{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:7px;}
+.linha-item-orc select,.linha-item-orc input,.linha-item-orc-atributos select{padding:7px 9px;font-size:13px;border:1.3px solid var(--borda);border-radius:7px;width:100%;}
+.linha-item-orc-atributos select{background:#FBFCFE;font-size:12.5px;}
 .total-orcamento{display:flex;justify-content:flex-end;gap:26px;padding:14px 4px 4px;font-size:14px;}
 .total-orcamento .destaque{font-size:18px;font-weight:800;color:var(--azul);}
 
@@ -423,7 +426,7 @@ tbody tr:hover{background:#FAFBFD;}
           <div class="tabela-wrap">
             <table>
               <thead><tr>
-                <th>Produto</th><th>Categoria</th><th>Espessura/Cor</th><th>Preço</th><th>Status</th><th></th>
+                <th>Produto</th><th>Categoria</th><th>Preço</th><th>Status</th><th></th>
               </tr></thead>
               <tbody id="tbody-produtos"></tbody>
             </table>
@@ -496,6 +499,29 @@ tbody tr:hover{background:#FAFBFD;}
           </div>
         </section>
 
+        <!-- CADASTROS (origem do lead, tipo de pintura, cor, espessura, tipo de isopor) -->
+        <section class="pagina" id="pagina-cadastros">
+          <div class="abas-cadastro" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+            <button class="btn btn-sm btn-primario aba-cadastro-btn" data-aba="origens_lead" onclick="trocarAbaCadastro('origens_lead')">Origem do Lead</button>
+            <button class="btn btn-sm btn-fantasma aba-cadastro-btn" data-aba="tipos_pintura" onclick="trocarAbaCadastro('tipos_pintura')">Tipo de Pintura</button>
+            <button class="btn btn-sm btn-fantasma aba-cadastro-btn" data-aba="cores" onclick="trocarAbaCadastro('cores')">Cores</button>
+            <button class="btn btn-sm btn-fantasma aba-cadastro-btn" data-aba="espessuras" onclick="trocarAbaCadastro('espessuras')">Espessuras</button>
+            <button class="btn btn-sm btn-fantasma aba-cadastro-btn" data-aba="tipos_isopor" onclick="trocarAbaCadastro('tipos_isopor')">Tipo de Isopor</button>
+          </div>
+          <div class="barra-acoes">
+            <div class="busca-filtros"></div>
+            <button class="btn btn-primario" id="btn-novo-cadastro" onclick="abrirModalCadastroSimples()">+ Novo</button>
+          </div>
+          <div class="tabela-wrap">
+            <table>
+              <thead><tr>
+                <th id="th-cadastro-titulo">Nome</th><th>Status</th><th></th>
+              </tr></thead>
+              <tbody id="tbody-cadastro-simples"></tbody>
+            </table>
+          </div>
+        </section>
+
       </div>
     </div>
   </div>
@@ -504,6 +530,30 @@ tbody tr:hover{background:#FAFBFD;}
 <!-- ============================================================= -->
 <!-- MODAIS                                                         -->
 <!-- ============================================================= -->
+
+<!-- MODAL CADASTRO SIMPLES (origem do lead / tipo de pintura / cor / espessura / tipo de isopor) -->
+<div class="overlay-modal" id="modal-cadastro-simples">
+  <div class="caixa-modal">
+    <div class="cabecalho-modal">
+      <h2 id="titulo-modal-cadastro-simples">Novo item</h2>
+      <button class="fechar-modal" onclick="fecharModal('modal-cadastro-simples')">✕</button>
+    </div>
+    <div class="corpo-modal">
+      <input type="hidden" id="cadastro-simples-id">
+      <div class="campo"><label id="label-cadastro-simples-nome">Nome *</label><input type="text" id="cadastro-simples-nome"></div>
+      <div class="campo"><label>Status</label>
+        <select id="cadastro-simples-ativo">
+          <option value="true">Ativo</option>
+          <option value="false">Inativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="rodape-modal">
+      <button class="btn btn-fantasma" onclick="fecharModal('modal-cadastro-simples')">Cancelar</button>
+      <button class="btn btn-primario" onclick="salvarCadastroSimples()">Salvar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL CLIENTE -->
 <div class="overlay-modal" id="modal-cliente">
@@ -568,10 +618,6 @@ tbody tr:hover{background:#FAFBFD;}
           </select>
         </div>
       </div>
-      <div class="linha-campos">
-        <div class="campo"><label>Espessura</label><input type="text" id="produto-espessura" placeholder="Ex: 30mm"></div>
-        <div class="campo"><label>Cor</label><input type="text" id="produto-cor" placeholder="Ex: Branca"></div>
-      </div>
       <div class="campo"><label>Preço unitário (R$) *</label><input type="number" step="0.01" id="produto-preco"></div>
       <div class="campo"><label>Descrição</label><textarea id="produto-descricao"></textarea></div>
       <div class="campo">
@@ -604,10 +650,7 @@ tbody tr:hover{background:#FAFBFD;}
       <div class="linha-campos">
         <div class="campo"><label>Valor estimado (R$)</label><input type="number" step="0.01" id="lead-valor"></div>
         <div class="campo"><label>Origem</label>
-          <select id="lead-origem">
-            <option>Indicação</option><option>Site</option><option>Redes Sociais</option>
-            <option>Ligação ativa</option><option>Feira/Evento</option><option>Outro</option>
-          </select>
+          <select id="lead-origem"></select>
         </div>
       </div>
       <div class="campo"><label>Etapa</label>
@@ -642,12 +685,16 @@ tbody tr:hover{background:#FAFBFD;}
     <div class="corpo-modal">
       <input type="hidden" id="orcamento-id">
       <div class="linha-campos">
+        <div class="campo"><label>Número do orçamento</label><input type="text" id="orcamento-numero" placeholder="Gerado automaticamente se vazio"></div>
         <div class="campo"><label>Cliente *</label><select id="orcamento-cliente"></select></div>
-        <div class="campo"><label>Vendedor</label><select id="orcamento-vendedor"></select></div>
       </div>
       <div class="linha-campos">
+        <div class="campo"><label>Vendedor</label><select id="orcamento-vendedor"></select></div>
         <div class="campo"><label>Data</label><input type="date" id="orcamento-data"></div>
+      </div>
+      <div class="linha-campos">
         <div class="campo"><label>Válido até</label><input type="date" id="orcamento-validade"></div>
+        <div class="campo"></div>
       </div>
 
       <label style="font-size:12.5px;font-weight:600;color:var(--texto-suave);display:block;margin:18px 0 6px;">ITENS DO ORÇAMENTO</label>
@@ -754,6 +801,7 @@ const ICONE_PRODUTOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="no
 const ICONE_ORCAMENTOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><line x1="9.5" y1="13" x2="16" y2="13"/><line x1="9.5" y1="17" x2="16" y2="17"/></svg>';
 const ICONE_PEDIDOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="11" height="9"/><path d="M13 10h4l3 3v3h-7z"/><circle cx="6" cy="18.5" r="1.6"/><circle cx="16.5" cy="18.5" r="1.6"/></svg>';
 const ICONE_USUARIOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.97 7.97 0 000-2l1.6-1.2-1.6-2.8-1.9.5a8 8 0 00-1.7-1l-.3-2h-3.2l-.3 2a8 8 0 00-1.7 1l-1.9-.5-1.6 2.8 1.6 1.2a7.97 7.97 0 000 2l-1.6 1.2 1.6 2.8 1.9-.5a8 8 0 001.7 1l.3 2h3.2l.3-2a8 8 0 001.7-1l1.9.5 1.6-2.8z"/></svg>';
+const ICONE_CADASTROS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.6L12.6 20.6a2 2 0 01-2.8 0l-7-7a2 2 0 010-2.8L10.8 2.8a2 2 0 011.4-.6H19a2 2 0 012 2v6.4a2 2 0 01-.6 1.4z"/><circle cx="14.5" cy="7.5" r="1.5"/></svg>';
 const ICONE_EDITAR = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
 const ICONE_LIXEIRA = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
 const ICONE_PDF = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9 17v-4h1.5a1.5 1.5 0 0 1 0 3H9"/><path d="M13.2 17v-4h1.3"/><path d="M13.2 15h1"/></svg>';
@@ -764,7 +812,7 @@ const ICONE_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" str
 /* =====================================================================
    ESTADO GLOBAL
 ===================================================================== */
-let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], paginaAtual:'dashboard' };
+let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], origensLead:[], tiposPintura:[], cores:[], espessuras:[], tiposIsopor:[], paginaAtual:'dashboard' };
 let graficos = {};
 let itensBuilder = [];
 let leadArrastando = null;
@@ -776,6 +824,7 @@ const ITENS_NAV = [
   {id:'produtos', rotulo:'Produtos', descricao:'Catálogo de telhas e modelos', icone:ICONE_PRODUTOS, perfis:['admin','gerente','vendedor']},
   {id:'orcamentos', rotulo:'Orçamentos', descricao:'Monte, envie e acompanhe propostas', icone:ICONE_ORCAMENTOS, perfis:['admin','gerente','vendedor']},
   {id:'pedidos', rotulo:'Pedidos', descricao:'Status de produção e entrega', icone:ICONE_PEDIDOS, perfis:['admin','gerente','vendedor']},
+  {id:'cadastros', rotulo:'Cadastros', descricao:'Origem, pintura, cor, espessura e isopor', icone:ICONE_CADASTROS, perfis:['admin','gerente']},
   {id:'usuarios', rotulo:'Usuários', descricao:'Gestão de usuários e permissões', icone:ICONE_USUARIOS, perfis:['admin']},
 ];
 const ETAPAS_FUNIL = [
@@ -832,6 +881,11 @@ function popularSelectClientes(selectId, valorSelecionado){
 function popularSelectVendedores(selectId, valorSelecionado){
   const ativos = estado.usuarios.filter(u=>u.ativo);
   document.getElementById(selectId).innerHTML = ativos.map(u=>`<option value="${u.id}" ${u.id===(valorSelecionado||estado.usuario.id)?'selected':''}>${escapeHtml(u.nome)}</option>`).join('');
+}
+function popularSelectOrigensLead(selectId, valorSelecionado){
+  const ativas = estado.origensLead.filter(o=>o.ativo);
+  document.getElementById(selectId).innerHTML = '<option value="">Selecione...</option>' +
+    ativas.map(o=>`<option value="${escapeHtml(o.nome)}" ${o.nome===valorSelecionado?'selected':''}>${escapeHtml(o.nome)}</option>`).join('');
 }
 
 /* =====================================================================
@@ -930,6 +984,7 @@ function navegarPagina(pagina){
   if(pagina==='produtos') renderizarProdutos();
   if(pagina==='orcamentos') renderizarOrcamentos();
   if(pagina==='pedidos') renderizarPedidos();
+  if(pagina==='cadastros') renderizarCadastros();
   if(pagina==='usuarios') renderizarUsuarios();
 }
 async function atualizarEdRenderizar(){ await carregarDadosIniciais(); navegarPagina(estado.paginaAtual); }
@@ -938,7 +993,7 @@ async function atualizarEdRenderizar(){ await carregarDadosIniciais(); navegarPa
    CARREGAMENTO DE DADOS
 ===================================================================== */
 async function carregarDadosIniciais(){
-  const [usuarios, clientes, produtos, leads, orcamentos, itens, pedidos] = await Promise.all([
+  const [usuarios, clientes, produtos, leads, orcamentos, itens, pedidos, origensLead, tiposPintura, cores, espessuras, tiposIsopor] = await Promise.all([
     sb('usuarios?select=*&order=nome.asc'),
     sb('clientes?select=*&order=nome.asc'),
     sb('produtos?select=*&order=nome.asc'),
@@ -946,6 +1001,11 @@ async function carregarDadosIniciais(){
     sb('orcamentos?select=*&order=numero.desc'),
     sb('orcamento_itens?select=*'),
     sb('pedidos?select=*&order=numero.desc'),
+    sb('origens_lead?select=*&order=nome.asc'),
+    sb('tipos_pintura?select=*&order=nome.asc'),
+    sb('cores?select=*&order=nome.asc'),
+    sb('espessuras?select=*&order=nome.asc'),
+    sb('tipos_isopor?select=*&order=nome.asc'),
   ]);
   estado.usuarios = usuarios || [];
   estado.clientes = clientes || [];
@@ -954,6 +1014,11 @@ async function carregarDadosIniciais(){
   estado.orcamentos = orcamentos || [];
   estado.itensOrcamento = itens || [];
   estado.pedidos = pedidos || [];
+  estado.origensLead = origensLead || [];
+  estado.tiposPintura = tiposPintura || [];
+  estado.cores = cores || [];
+  estado.espessuras = espessuras || [];
+  estado.tiposIsopor = tiposIsopor || [];
 }
 
 /* =====================================================================
@@ -1063,6 +1128,7 @@ function alternarCampoMotivoPerda(){
 function abrirModalLead(id){
   popularSelectClientes('lead-cliente');
   popularSelectVendedores('lead-vendedor');
+  popularSelectOrigensLead('lead-origem');
   document.getElementById('titulo-modal-lead').textContent = id ? 'Editar Lead' : 'Novo Lead';
   if(id){
     const l = estado.leads.find(x=>x.id===id);
@@ -1071,7 +1137,7 @@ function abrirModalLead(id){
     document.getElementById('lead-cliente').value = l.cliente_id||'';
     document.getElementById('lead-vendedor').value = l.vendedor_id||'';
     document.getElementById('lead-valor').value = l.valor_estimado||0;
-    document.getElementById('lead-origem').value = l.origem||'Indicação';
+    document.getElementById('lead-origem').value = l.origem||'';
     document.getElementById('lead-etapa').value = l.etapa||'novo';
     document.getElementById('lead-motivo-perda').value = l.motivo_perda||'';
     document.getElementById('lead-observacoes').value = l.observacoes||'';
@@ -1202,11 +1268,10 @@ function renderizarProdutos(){
   if(termo) lista = lista.filter(p=>(p.nome||'').toLowerCase().includes(termo));
   if(categoria) lista = lista.filter(p=>p.categoria===categoria);
   const corpo = document.getElementById('tbody-produtos');
-  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="6"><div class="vazio">Nenhum produto encontrado.</div></td></tr>`; return; }
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="5"><div class="vazio">Nenhum produto encontrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(p=>`<tr>
       <td><strong>${escapeHtml(p.nome)}</strong></td>
       <td><span class="selo selo-azul">${escapeHtml(p.categoria||'—')}</span></td>
-      <td>${escapeHtml(p.espessura||'—')} ${p.cor?'· '+escapeHtml(p.cor):''}</td>
       <td>${formatarMoeda(p.preco_unitario)} / ${escapeHtml(p.unidade||'un')}</td>
       <td>${p.ativo?'<span class="selo selo-verde">Ativo</span>':'<span class="selo selo-cinza">Inativo</span>'}</td>
       <td><div class="acoes-linha">
@@ -1222,13 +1287,11 @@ function abrirModalProduto(id){
     document.getElementById('produto-nome').value = p.nome||'';
     document.getElementById('produto-categoria').value = p.categoria||'Telha Sanduíche';
     document.getElementById('produto-unidade').value = p.unidade||'m²';
-    document.getElementById('produto-espessura').value = p.espessura||'';
-    document.getElementById('produto-cor').value = p.cor||'';
     document.getElementById('produto-preco').value = p.preco_unitario||0;
     document.getElementById('produto-descricao').value = p.descricao||'';
     document.getElementById('produto-ativo').checked = !!p.ativo;
   } else {
-    ['produto-id','produto-nome','produto-espessura','produto-cor','produto-preco','produto-descricao'].forEach(i=>document.getElementById(i).value='');
+    ['produto-id','produto-nome','produto-preco','produto-descricao'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('produto-categoria').value='Telha Sanduíche';
     document.getElementById('produto-unidade').value='m²';
     document.getElementById('produto-ativo').checked = true;
@@ -1244,8 +1307,6 @@ async function salvarProduto(){
     nome,
     categoria: document.getElementById('produto-categoria').value,
     unidade: document.getElementById('produto-unidade').value,
-    espessura: document.getElementById('produto-espessura').value || null,
-    cor: document.getElementById('produto-cor').value || null,
     preco_unitario: preco,
     descricao: document.getElementById('produto-descricao').value || null,
     ativo: document.getElementById('produto-ativo').checked
@@ -1304,15 +1365,20 @@ function abrirModalOrcamento(id){
   if(id){
     const o = estado.orcamentos.find(x=>x.id===id);
     document.getElementById('orcamento-id').value = o.id;
+    document.getElementById('orcamento-numero').value = o.numero||'';
     document.getElementById('orcamento-cliente').value = o.cliente_id||'';
     document.getElementById('orcamento-vendedor').value = o.vendedor_id||'';
     document.getElementById('orcamento-data').value = o.data_orcamento||'';
     document.getElementById('orcamento-validade').value = o.validade||'';
     document.getElementById('orcamento-desconto').value = o.desconto||0;
     document.getElementById('orcamento-observacoes').value = o.observacoes||'';
-    itensBuilder = itensDoOrcamento(o.id).map(i=>({produto_id:i.produto_id, quantidade:Number(i.quantidade), preco_unitario:Number(i.preco_unitario)}));
+    itensBuilder = itensDoOrcamento(o.id).map(i=>({
+      produto_id:i.produto_id, quantidade:Number(i.quantidade), preco_unitario:Number(i.preco_unitario),
+      cor_id:i.cor_id||'', espessura_id:i.espessura_id||'', tipo_pintura_id:i.tipo_pintura_id||'', tipo_isopor_id:i.tipo_isopor_id||''
+    }));
   } else {
     document.getElementById('orcamento-id').value='';
+    document.getElementById('orcamento-numero').value='';
     document.getElementById('orcamento-data').value = new Date().toISOString().slice(0,10);
     document.getElementById('orcamento-validade').value='';
     document.getElementById('orcamento-desconto').value=0;
@@ -1320,25 +1386,45 @@ function abrirModalOrcamento(id){
     if(!podeVerTudo()) document.getElementById('orcamento-vendedor').value = estado.usuario.id;
     itensBuilder = [];
   }
-  if(!itensBuilder.length) itensBuilder.push({produto_id:'', quantidade:1, preco_unitario:0});
+  if(!itensBuilder.length) itensBuilder.push({produto_id:'', quantidade:1, preco_unitario:0, cor_id:'', espessura_id:'', tipo_pintura_id:'', tipo_isopor_id:''});
   renderizarItensBuilder();
   abrirModal('modal-orcamento');
 }
 function renderizarItensBuilder(){
   document.getElementById('lista-itens-orcamento').innerHTML = itensBuilder.map((it,idx)=>`
-    <div class="linha-item-orc">
-      <select onchange="mudarProdutoItem(${idx}, this.value)">
-        <option value="">Selecione o produto...</option>
-        ${estado.produtos.filter(p=>p.ativo).map(p=>`<option value="${p.id}" ${p.id===it.produto_id?'selected':''}>${escapeHtml(p.nome)}</option>`).join('')}
-      </select>
-      <input type="number" min="0" step="0.01" value="${it.quantidade}" placeholder="Qtd" onchange="mudarQtdItem(${idx}, this.value)">
-      <input type="number" min="0" step="0.01" value="${it.preco_unitario}" placeholder="Preço unit." onchange="mudarPrecoItem(${idx}, this.value)">
-      <input type="text" value="${formatarMoeda(it.quantidade*it.preco_unitario)}" disabled style="background:#F4F6FA;">
-      <button class="icone-btn perigo" type="button" onclick="removerLinhaItem(${idx})">${ICONE_X}</button>
+    <div class="bloco-item-orc">
+      <div class="linha-item-orc">
+        <select onchange="mudarProdutoItem(${idx}, this.value)">
+          <option value="">Selecione o produto...</option>
+          ${estado.produtos.filter(p=>p.ativo).map(p=>`<option value="${p.id}" ${p.id===it.produto_id?'selected':''}>${escapeHtml(p.nome)}</option>`).join('')}
+        </select>
+        <input type="number" min="0" step="0.01" value="${it.quantidade}" placeholder="Qtd" onchange="mudarQtdItem(${idx}, this.value)">
+        <input type="number" min="0" step="0.01" value="${it.preco_unitario}" placeholder="Preço unit." onchange="mudarPrecoItem(${idx}, this.value)">
+        <input type="text" value="${formatarMoeda(it.quantidade*it.preco_unitario)}" disabled style="background:#F4F6FA;">
+        <button class="icone-btn perigo" type="button" onclick="removerLinhaItem(${idx})">${ICONE_X}</button>
+      </div>
+      <div class="linha-item-orc-atributos">
+        <select onchange="mudarAtributoItem(${idx}, 'cor', this.value)">
+          <option value="">Cor...</option>
+          ${estado.cores.filter(c=>c.ativo).map(c=>`<option value="${c.id}" ${c.id===it.cor_id?'selected':''}>${escapeHtml(c.nome)}</option>`).join('')}
+        </select>
+        <select onchange="mudarAtributoItem(${idx}, 'espessura', this.value)">
+          <option value="">Espessura...</option>
+          ${estado.espessuras.filter(e=>e.ativo).map(e=>`<option value="${e.id}" ${e.id===it.espessura_id?'selected':''}>${escapeHtml(e.nome)}</option>`).join('')}
+        </select>
+        <select onchange="mudarAtributoItem(${idx}, 'tipo_pintura', this.value)">
+          <option value="">Tipo de pintura...</option>
+          ${estado.tiposPintura.filter(t=>t.ativo).map(t=>`<option value="${t.id}" ${t.id===it.tipo_pintura_id?'selected':''}>${escapeHtml(t.nome)}</option>`).join('')}
+        </select>
+        <select onchange="mudarAtributoItem(${idx}, 'tipo_isopor', this.value)">
+          <option value="">Tipo de isopor...</option>
+          ${estado.tiposIsopor.filter(t=>t.ativo).map(t=>`<option value="${t.id}" ${t.id===it.tipo_isopor_id?'selected':''}>${escapeHtml(t.nome)}</option>`).join('')}
+        </select>
+      </div>
     </div>`).join('');
   recalcularTotalOrcamento();
 }
-function adicionarLinhaItem(){ itensBuilder.push({produto_id:'', quantidade:1, preco_unitario:0}); renderizarItensBuilder(); }
+function adicionarLinhaItem(){ itensBuilder.push({produto_id:'', quantidade:1, preco_unitario:0, cor_id:'', espessura_id:'', tipo_pintura_id:'', tipo_isopor_id:''}); renderizarItensBuilder(); }
 function removerLinhaItem(idx){ itensBuilder.splice(idx,1); renderizarItensBuilder(); }
 function mudarProdutoItem(idx, produtoId){
   const p = estado.produtos.find(x=>x.id===produtoId);
@@ -1348,6 +1434,7 @@ function mudarProdutoItem(idx, produtoId){
 }
 function mudarQtdItem(idx, valor){ itensBuilder[idx].quantidade = Number(valor)||0; renderizarItensBuilder(); }
 function mudarPrecoItem(idx, valor){ itensBuilder[idx].preco_unitario = Number(valor)||0; renderizarItensBuilder(); }
+function mudarAtributoItem(idx, campo, valor){ itensBuilder[idx][campo+'_id'] = valor; }
 function recalcularTotalOrcamento(){
   const subtotal = itensBuilder.reduce((s,it)=>s+(Number(it.quantidade)*Number(it.preco_unitario)),0);
   const desconto = Number(document.getElementById('orcamento-desconto').value)||0;
@@ -1371,6 +1458,8 @@ async function salvarOrcamento(){
     desconto, subtotal, total,
     observacoes: document.getElementById('orcamento-observacoes').value || null
   };
+  const numeroDigitado = document.getElementById('orcamento-numero').value.trim();
+  if(numeroDigitado) corpoOrc.numero = numeroDigitado;
   try{
     let orcamentoId = id;
     if(id){
@@ -1382,7 +1471,18 @@ async function salvarOrcamento(){
     }
     const itensParaSalvar = itensValidos.map(it=>{
       const prod = estado.produtos.find(p=>p.id===it.produto_id);
-      return { orcamento_id:orcamentoId, produto_id:it.produto_id, produto_nome: prod?prod.nome:'', quantidade:it.quantidade, preco_unitario:it.preco_unitario, subtotal: it.quantidade*it.preco_unitario };
+      const cor = estado.cores.find(c=>c.id===it.cor_id);
+      const espessura = estado.espessuras.find(e=>e.id===it.espessura_id);
+      const tipoPintura = estado.tiposPintura.find(t=>t.id===it.tipo_pintura_id);
+      const tipoIsopor = estado.tiposIsopor.find(t=>t.id===it.tipo_isopor_id);
+      return {
+        orcamento_id:orcamentoId, produto_id:it.produto_id, produto_nome: prod?prod.nome:'',
+        quantidade:it.quantidade, preco_unitario:it.preco_unitario, subtotal: it.quantidade*it.preco_unitario,
+        cor_id: it.cor_id||null, cor_nome: cor?cor.nome:null,
+        espessura_id: it.espessura_id||null, espessura_nome: espessura?espessura.nome:null,
+        tipo_pintura_id: it.tipo_pintura_id||null, tipo_pintura_nome: tipoPintura?tipoPintura.nome:null,
+        tipo_isopor_id: it.tipo_isopor_id||null, tipo_isopor_nome: tipoIsopor?tipoIsopor.nome:null
+      };
     });
     await sb('orcamento_itens', {metodo:'POST', corpo:itensParaSalvar, cabecalhos:{Prefer:'return=minimal'}});
     notif('Orçamento salvo com sucesso','sucesso');
@@ -1452,11 +1552,18 @@ function gerarPDFOrcamento(id){
   doc.setFont(undefined,'normal');
   itens.forEach(it=>{
     y += 8;
-    if(y > 265){ doc.addPage(); y = 20; }
+    if(y > 260){ doc.addPage(); y = 20; }
     doc.text(String(it.produto_nome||'').slice(0,48), 17, y);
     doc.text(String(it.quantidade), 120, y);
     doc.text(formatarMoeda(it.preco_unitario), 142, y);
     doc.text(formatarMoeda(it.subtotal), 172, y);
+    const atributos = [it.cor_nome, it.espessura_nome, it.tipo_pintura_nome, it.tipo_isopor_nome].filter(Boolean).join(' · ');
+    if(atributos){
+      y += 4.5;
+      doc.setFontSize(8); doc.setTextColor(120,120,120);
+      doc.text(atributos.slice(0,90), 17, y);
+      doc.setFontSize(9.5); doc.setTextColor(0,0,0);
+    }
     doc.setDrawColor(225,229,236);
     doc.line(14, y+3, 196, y+3);
   });
@@ -1587,6 +1694,88 @@ async function excluirUsuario(id){
   try{
     await sb(`usuarios?id=eq.${id}`, {metodo:'DELETE', cabecalhos:{Prefer:'return=minimal'}});
     notif('Usuário excluído','sucesso');
+    await atualizarEdRenderizar();
+  }catch(e){ notif('Erro ao excluir: '+e.message,'erro'); }
+}
+
+/* =====================================================================
+   CADASTROS SIMPLES
+   (Origem do Lead, Tipo de Pintura, Cores, Espessuras, Tipo de Isopor)
+   Todas as 5 tabelas têm o mesmo formato (id, nome, ativo), então usamos
+   um CRUD genérico em vez de repetir o código 5 vezes.
+===================================================================== */
+const CADASTROS_SIMPLES = {
+  origens_lead:  { tabela:'origens_lead',  rotulo:'Origem do Lead', rotuloCampo:'Nome da origem *',  estadoChave:'origensLead' },
+  tipos_pintura: { tabela:'tipos_pintura', rotulo:'Tipo de Pintura', rotuloCampo:'Tipo de pintura *', estadoChave:'tiposPintura' },
+  cores:         { tabela:'cores',         rotulo:'Cor',             rotuloCampo:'Nome da cor *',     estadoChave:'cores' },
+  espessuras:    { tabela:'espessuras',    rotulo:'Espessura',       rotuloCampo:'Espessura *',       estadoChave:'espessuras' },
+  tipos_isopor:  { tabela:'tipos_isopor',  rotulo:'Tipo de Isopor',  rotuloCampo:'Tipo de isopor *',  estadoChave:'tiposIsopor' },
+};
+let abaCadastroAtual = 'origens_lead';
+
+function trocarAbaCadastro(aba){
+  abaCadastroAtual = aba;
+  document.querySelectorAll('.aba-cadastro-btn').forEach(b=>{
+    b.classList.toggle('btn-primario', b.dataset.aba===aba);
+    b.classList.toggle('btn-fantasma', b.dataset.aba!==aba);
+  });
+  renderizarCadastros();
+}
+function renderizarCadastros(){
+  document.querySelectorAll('.aba-cadastro-btn').forEach(b=>{
+    b.classList.toggle('btn-primario', b.dataset.aba===abaCadastroAtual);
+    b.classList.toggle('btn-fantasma', b.dataset.aba!==abaCadastroAtual);
+  });
+  const cfg = CADASTROS_SIMPLES[abaCadastroAtual];
+  document.getElementById('th-cadastro-titulo').textContent = cfg.rotulo;
+  document.getElementById('btn-novo-cadastro').textContent = '+ Novo ('+cfg.rotulo+')';
+  const lista = estado[cfg.estadoChave] || [];
+  const corpo = document.getElementById('tbody-cadastro-simples');
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="3"><div class="vazio">Nenhum registro cadastrado.</div></td></tr>`; return; }
+  corpo.innerHTML = lista.map(item=>`<tr>
+      <td><strong>${escapeHtml(item.nome)}</strong></td>
+      <td>${item.ativo?'<span class="selo selo-verde">Ativo</span>':'<span class="selo selo-cinza">Inativo</span>'}</td>
+      <td><div class="acoes-linha">
+        <button class="icone-btn" title="Editar" onclick="abrirModalCadastroSimples('${item.id}')">${ICONE_EDITAR}</button>
+        ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="excluirCadastroSimples('${item.id}')">${ICONE_LIXEIRA}</button>`:''}
+      </div></td></tr>`).join('');
+}
+function abrirModalCadastroSimples(id){
+  const cfg = CADASTROS_SIMPLES[abaCadastroAtual];
+  document.getElementById('label-cadastro-simples-nome').textContent = cfg.rotuloCampo;
+  document.getElementById('titulo-modal-cadastro-simples').textContent = id ? ('Editar '+cfg.rotulo) : ('Novo: '+cfg.rotulo);
+  if(id){
+    const item = (estado[cfg.estadoChave]||[]).find(x=>x.id===id);
+    document.getElementById('cadastro-simples-id').value = item.id;
+    document.getElementById('cadastro-simples-nome').value = item.nome||'';
+    document.getElementById('cadastro-simples-ativo').value = String(!!item.ativo);
+  } else {
+    document.getElementById('cadastro-simples-id').value='';
+    document.getElementById('cadastro-simples-nome').value='';
+    document.getElementById('cadastro-simples-ativo').value='true';
+  }
+  abrirModal('modal-cadastro-simples');
+}
+async function salvarCadastroSimples(){
+  const cfg = CADASTROS_SIMPLES[abaCadastroAtual];
+  const id = document.getElementById('cadastro-simples-id').value;
+  const nome = document.getElementById('cadastro-simples-nome').value.trim();
+  if(!nome){ notif('Preencha o nome.','erro'); return; }
+  const corpo = { nome, ativo: document.getElementById('cadastro-simples-ativo').value==='true' };
+  try{
+    if(id) await sb(`${cfg.tabela}?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
+    else await sb(cfg.tabela, {metodo:'POST', corpo, cabecalhos:{Prefer:'return=minimal'}});
+    notif(cfg.rotulo+' salvo(a) com sucesso','sucesso');
+    fecharModal('modal-cadastro-simples');
+    await atualizarEdRenderizar();
+  }catch(e){ notif('Erro ao salvar (nome já pode estar em uso): '+e.message,'erro'); }
+}
+async function excluirCadastroSimples(id){
+  const cfg = CADASTROS_SIMPLES[abaCadastroAtual];
+  if(!confirm('Excluir este registro de '+cfg.rotulo+'?')) return;
+  try{
+    await sb(`${cfg.tabela}?id=eq.${id}`, {metodo:'DELETE', cabecalhos:{Prefer:'return=minimal'}});
+    notif(cfg.rotulo+' excluído(a)','sucesso');
     await atualizarEdRenderizar();
   }catch(e){ notif('Erro ao excluir: '+e.message,'erro'); }
 }
