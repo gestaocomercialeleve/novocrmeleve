@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
@@ -385,58 +386,77 @@ tbody tr:hover{background:#FAFBFD;}
 
         <!-- ============================== ANÁLISES ============================== -->
         <section class="pagina" id="pagina-analises">
+
+          <!-- Filtro de Ano -->
+          <div class="barra-acoes" style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <label style="font-size:13.5px;font-weight:600;color:var(--texto-suave);">Filtrar por ano:</label>
+              <select id="filtro-ano-analises" onchange="renderizarAnalises()" style="padding:9px 14px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;color:var(--texto);font-weight:500;cursor:pointer;"></select>
+            </div>
+            <div id="ano-selecionado-badge" style="font-size:12px;color:var(--texto-suave);background:var(--azul-claro);padding:5px 12px;border-radius:20px;font-weight:600;"></div>
+          </div>
+
           <h3 style="margin:0 0 4px;font-size:15px;">De onde vêm meus leads</h3>
-          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Distribuição dos leads cadastrados por origem e por cidade do cliente.</p>
+          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Leads cadastrados por mês, agrupados por origem e cidade do cliente.</p>
           <div class="grade-graficos">
             <div class="painel">
-              <h3>Leads por Origem</h3>
-              <canvas id="grafico-leads-origem"></canvas>
+              <h3>Leads por Mês — Origem</h3>
+              <canvas id="grafico-leads-origem" style="max-height:300px;"></canvas>
             </div>
             <div class="painel">
-              <h3>Leads por Cidade</h3>
-              <canvas id="grafico-leads-cidade"></canvas>
+              <h3>Leads por Mês — Cidade</h3>
+              <canvas id="grafico-leads-cidade" style="max-height:300px;"></canvas>
             </div>
           </div>
 
           <h3 style="margin:28px 0 4px;font-size:15px;">O que estou vendendo</h3>
-          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Itens de orçamento por tipo de pintura, cor, espessura e tipo de isopor.</p>
+          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Itens de orçamento por mês, agrupados por pintura, cor, espessura e isopor.</p>
           <div class="grade-graficos">
             <div class="painel">
-              <h3>Itens por Tipo de Pintura</h3>
-              <canvas id="grafico-itens-pintura"></canvas>
+              <h3>Itens por Mês — Tipo de Pintura</h3>
+              <canvas id="grafico-itens-pintura" style="max-height:300px;"></canvas>
             </div>
             <div class="painel">
-              <h3>Itens por Cor</h3>
-              <canvas id="grafico-itens-cor"></canvas>
+              <h3>Itens por Mês — Cor</h3>
+              <canvas id="grafico-itens-cor" style="max-height:300px;"></canvas>
             </div>
           </div>
           <div class="grade-graficos" style="margin-top:16px;">
             <div class="painel">
-              <h3>Itens por Espessura</h3>
-              <canvas id="grafico-itens-espessura"></canvas>
+              <h3>Itens por Mês — Espessura</h3>
+              <canvas id="grafico-itens-espessura" style="max-height:300px;"></canvas>
             </div>
             <div class="painel">
-              <h3>Itens por Tipo de Isopor</h3>
-              <canvas id="grafico-itens-isopor"></canvas>
+              <h3>Itens por Mês — Tipo de Isopor</h3>
+              <canvas id="grafico-itens-isopor" style="max-height:300px;"></canvas>
             </div>
           </div>
         </section>
 
         <!-- ============================== METAS ============================== -->
         <section class="pagina" id="pagina-metas">
-          <div class="barra-acoes">
-            <div class="busca-filtros">
+          <div class="barra-acoes" style="flex-wrap:wrap;gap:10px;">
+            <div class="busca-filtros" style="flex-wrap:wrap;gap:10px;">
               <input type="date" id="metas-data-inicio" onchange="renderizarMetas()">
               <input type="date" id="metas-data-fim" onchange="renderizarMetas()">
+              <select id="filtro-vendedor-metas" onchange="renderizarMetas()" style="padding:9px 13px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;">
+                <option value="">Todos os vendedores</option>
+              </select>
             </div>
           </div>
 
           <h3 style="margin:0 0 4px;font-size:15px;">Meta x Realizado por dia</h3>
           <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Realizado considera orçamentos com status "Aprovado", pela data do orçamento.</p>
-          <div class="tabela-wrap" style="margin-bottom:22px;">
+          <div class="tabela-wrap" style="margin-bottom:22px;overflow-x:auto;">
             <table>
               <thead><tr>
-                <th>Data</th><th>Vendedor</th><th>Meta do dia</th><th>Realizado</th><th>% atingido</th>
+                <th>Data</th>
+                <th>Meta do Dia</th>
+                <th>Real. Dia</th>
+                <th>% Ating. Dia</th>
+                <th>Meta Acum.</th>
+                <th>Real. Acum.</th>
+                <th>% Meta Acum.</th>
               </tr></thead>
               <tbody id="tbody-metas-diarias"></tbody>
             </table>
@@ -446,6 +466,42 @@ tbody tr:hover{background:#FAFBFD;}
             <h3>Acumulado no período: Meta x Realizado</h3>
             <canvas id="grafico-metas-acumulado"></canvas>
           </div>
+        </section>
+
+        <!-- ============================== CONFIG METAS ============================== -->
+        <section class="pagina" id="pagina-config-metas">
+
+          <!-- Cabeçalho: filtro de ano + botão salvar -->
+          <div class="barra-acoes" style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <label style="font-size:13.5px;font-weight:600;color:var(--texto-suave);">Ano:</label>
+              <select id="cfg-ano" onchange="renderizarConfigMetas()" style="padding:9px 14px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;font-weight:600;"></select>
+              <span style="font-size:12.5px;color:var(--texto-suave);">Configure a meta de Janeiro a Dezembro de uma vez</span>
+            </div>
+            <button class="btn btn-primario" onclick="salvarConfigMetas()" style="min-width:160px;">
+              💾 Salvar Ano Completo
+            </button>
+          </div>
+
+          <!-- Bloco de distribuição % (definido uma vez, aplica a todos os meses) -->
+          <div class="painel" style="margin-bottom:20px;" id="cfg-bloco-distribuicao">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+              <div>
+                <h3 style="margin:0 0 2px;">Distribuição por Vendedor</h3>
+                <p style="margin:0;font-size:12px;color:var(--texto-suave);">Defina o % de cada vendedor — será aplicado em todos os meses. Você pode editar, adicionar ou remover.</p>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div id="cfg-total-pct-badge" style="font-size:12.5px;font-weight:700;padding:5px 14px;border-radius:20px;background:var(--verde-claro);color:var(--verde);">Total: 0%</div>
+                <button class="btn btn-secundario btn-sm" onclick="cfgAdicionarVendedor()">+ Adicionar</button>
+                <button class="btn btn-fantasma btn-sm" onclick="cfgDistribuirIgual()" title="Distribuir % igualmente entre todos">⚖️ Igualar %</button>
+              </div>
+            </div>
+            <div id="cfg-vendedores-pct" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+
+          <!-- Tabela anual: um card por mês -->
+          <div id="cfg-meses-lista" style="display:flex;flex-direction:column;gap:14px;"></div>
+
         </section>
 
         <!-- ============================== FUNIL ============================== -->
@@ -881,7 +937,7 @@ const ICONE_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" str
 /* =====================================================================
    ESTADO GLOBAL
 ===================================================================== */
-let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], origensLead:[], tiposPintura:[], cores:[], espessuras:[], tiposIsopor:[], cidades:[], paginaAtual:'dashboard' };
+let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], origensLead:[], tiposPintura:[], cores:[], espessuras:[], tiposIsopor:[], cidades:[], paginaAtual:'dashboard', configMetas:{} };
 let graficos = {};
 let itensBuilder = [];
 let leadArrastando = null;
@@ -896,6 +952,7 @@ const ITENS_NAV = [
   {id:'orcamentos', rotulo:'Orçamentos', descricao:'Monte, envie e acompanhe propostas', icone:ICONE_ORCAMENTOS, perfis:['admin','gerente','vendedor']},
   {id:'pedidos', rotulo:'Pedidos', descricao:'Status de produção e entrega', icone:ICONE_PEDIDOS, perfis:['admin','gerente','vendedor']},
   {id:'cadastros', rotulo:'Cadastros', descricao:'Origem, pintura, cor, espessura e isopor', icone:ICONE_CADASTROS, perfis:['admin','gerente']},
+  {id:'config-metas', rotulo:'Config. Metas', descricao:'Defina metas mensais e distribua por vendedor', icone:ICONE_METAS, perfis:['admin','gerente']},
   {id:'usuarios', rotulo:'Usuários', descricao:'Gestão de usuários e permissões', icone:ICONE_USUARIOS, perfis:['admin']},
 ];
 const ETAPAS_FUNIL = [
@@ -1035,7 +1092,21 @@ async function iniciarApp(){
   construirNavLateral();
   try{
     await carregarDadosIniciais();
-    navegarPagina('dashboard');
+    // Carrega config de metas do mês atual (chave anual nova ou chave antiga)
+  const _hj = new Date();
+  const _anoAtual = _hj.getFullYear();
+  const _mesAtual = _hj.getMonth()+1;
+  const _cfgAnual = (() => { try{ const r=localStorage.getItem('cfg_metas_ano_'+_anoAtual); return r?JSON.parse(r):null; }catch(e){return null;} })();
+  if(_cfgAnual && _cfgAnual[_mesAtual]){
+    estado.configMetas = {};
+    const _cfgMes = _cfgAnual[_mesAtual];
+    Object.keys(_cfgMes).forEach(k=>{ if(!k.startsWith('_') && _cfgMes[k]?.metaDiaria !== undefined) estado.configMetas[k] = _cfgMes[k].metaDiaria; });
+  } else {
+    // Fallback chave antiga
+    const _cfgAntiga = (() => { try{ const r=localStorage.getItem('cfg_metas_'+_anoAtual+'_'+_mesAtual); return r?JSON.parse(r):null; }catch(e){return null;} })();
+    if(_cfgAntiga){ estado.configMetas = {}; Object.keys(_cfgAntiga).forEach(k=>{ if(!k.startsWith('_') && _cfgAntiga[k]?.metaDiaria !== undefined) estado.configMetas[k] = _cfgAntiga[k].metaDiaria; }); }
+  }
+  navegarPagina('dashboard');
   }catch(e){ notif('Erro ao carregar dados: '+e.message, 'erro'); }
 }
 
@@ -1068,6 +1139,7 @@ function navegarPagina(pagina){
   if(pagina==='pedidos') renderizarPedidos();
   if(pagina==='cadastros') renderizarCadastros();
   if(pagina==='usuarios') renderizarUsuarios();
+  if(pagina==='config-metas') renderizarConfigMetas();
 }
 async function atualizarEdRenderizar(){ await carregarDadosIniciais(); navegarPagina(estado.paginaAtual); }
 
@@ -1157,68 +1229,219 @@ function renderizarDashboard(){
   }
   desenharGrafico('grafico-faturamento','line', meses, [{label:'Faturamento', data: totaisMes, borderColor:'#2F5DA0', backgroundColor:'rgba(47,93,160,.12)', fill:true, tension:.35}]);
 }
+// Registra o plugin datalabels globalmente (uma única vez)
+if(window.ChartDataLabels) Chart.register(ChartDataLabels);
+
 function desenharGrafico(idCanvas, tipo, rotulos, datasets){
   const canvas = document.getElementById(idCanvas);
   if(!canvas) return;
   if(graficos[idCanvas]) graficos[idCanvas].destroy();
+
+  const isDoughnut = tipo === 'doughnut';
+  const isLine     = tipo === 'line';
+
   graficos[idCanvas] = new Chart(canvas, {
-    type: tipo, data:{ labels: rotulos, datasets },
-    options:{ responsive:true, plugins:{ legend:{ display: tipo==='doughnut' || datasets.length>1, position:'bottom', labels:{boxWidth:10,font:{size:11}} } },
-      scales: tipo==='doughnut' ? {} : { y:{ beginAtZero:true, ticks:{font:{size:11}} }, x:{ ticks:{font:{size:11}} } } }
+    type: tipo,
+    data: { labels: rotulos, datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: isDoughnut || datasets.length > 1,
+          position: 'bottom',
+          labels: { boxWidth: 10, font: { size: 11 } }
+        },
+        datalabels: {
+          display: ctx => {
+            const v = ctx.dataset.data[ctx.dataIndex];
+            return v > 0;
+          },
+          color: isDoughnut ? '#fff' : '#1A1F2B',
+          font: { size: 10, weight: '700' },
+          anchor: isDoughnut ? 'center' : 'end',
+          align:  isDoughnut ? 'center' : 'top',
+          offset: isDoughnut ? 0 : 2,
+          formatter: v => {
+            if(isLine) return v > 0 ? 'R$' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}) : '';
+            return v > 0 ? String(v) : '';
+          }
+        }
+      },
+      scales: isDoughnut ? {} : {
+        y: { beginAtZero: true, ticks: { font: { size: 11 } } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
   });
 }
 
 /* =====================================================================
    ANÁLISES (origem do lead, cidade, pintura, cor, espessura, isopor)
+   Gráficos de barras mensais (Jan–Dez) com filtro por ano
 ===================================================================== */
 const PALETA_GRAFICOS = ['#2F5DA0','#1F9D55','#E0A526','#6655C8','#D6453F','#3E72B8','#5B9BD5','#8E7CC3','#E07B53','#4FA8A0','#C2860F','#9DB4DA'];
-function contarPorChave(lista, obterChave){
-  const contagem = {};
+const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+// Preenche o select de anos com base nos dados existentes
+function preencherFiltroAno(){
+  const sel = document.getElementById('filtro-ano-analises');
+  if(!sel) return;
+  const anos = new Set();
+  const anoAtual = new Date().getFullYear();
+  // Coleta anos dos leads
+  (estado.leads||[]).forEach(l=>{
+    if(l.criado_em) anos.add(new Date(l.criado_em).getFullYear());
+  });
+  // Coleta anos dos orçamentos
+  (estado.orcamentos||[]).forEach(o=>{
+    if(o.data_orcamento) anos.add(Number(o.data_orcamento.split('-')[0]));
+  });
+  // Garante ao menos o ano atual
+  anos.add(anoAtual);
+  const listaAnos = [...anos].sort((a,b)=>b-a);
+  const valorAtual = sel.value ? Number(sel.value) : anoAtual;
+  sel.innerHTML = listaAnos.map(a=>`<option value="${a}" ${a===valorAtual?'selected':''}>${a}</option>`).join('');
+  // Badge
+  const badge = document.getElementById('ano-selecionado-badge');
+  if(badge) badge.textContent = `Exibindo: ${sel.value}`;
+}
+
+// Conta itens por categoria, agrupando pelos 12 meses do ano selecionado
+// obterChave(item) → string (categoria) | null
+// obterMes(item) → 0..11 | null
+function contarPorCategoriaMensal(lista, obterChave, obterMes){
+  // resultado: { categoria: [jan,fev,...,dez] }
+  const mapa = {};
   lista.forEach(item=>{
     const chave = obterChave(item);
-    if(!chave) return;
-    contagem[chave] = (contagem[chave]||0) + 1;
+    const mes = obterMes(item);
+    if(!chave || mes === null || mes === undefined) return;
+    if(!mapa[chave]) mapa[chave] = Array(12).fill(0);
+    mapa[chave][mes]++;
   });
-  return contagem;
+  return mapa;
 }
-function desenharGraficoBarraHorizontal(idCanvas, contagem){
-  const entradas = Object.entries(contagem).sort((a,b)=>b[1]-a[1]);
+
+// Desenha gráfico de barras agrupadas por mês, uma série por categoria
+function desenharGraficoBarraMensal(idCanvas, mapaCategorias){
   const canvas = document.getElementById(idCanvas);
   if(!canvas) return;
   if(graficos[idCanvas]) graficos[idCanvas].destroy();
-  if(!entradas.length){
+
+  const categorias = Object.keys(mapaCategorias);
+  if(!categorias.length){
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Mensagem vazio
+    ctx.font = '13px Inter, sans-serif';
+    ctx.fillStyle = '#9AA5B5';
+    ctx.textAlign = 'center';
+    ctx.fillText('Nenhum dado para o período selecionado', canvas.width/2, 80);
     return;
   }
+
+  const datasets = categorias.map((cat, idx)=>({
+    label: cat,
+    data: mapaCategorias[cat],
+    backgroundColor: PALETA_GRAFICOS[idx % PALETA_GRAFICOS.length],
+    borderRadius: 4,
+    borderSkipped: false,
+  }));
+
   graficos[idCanvas] = new Chart(canvas, {
-    type:'bar',
-    data:{ labels: entradas.map(e=>e[0]), datasets:[{ data: entradas.map(e=>e[1]), backgroundColor: PALETA_GRAFICOS, borderRadius:6 }] },
-    options:{ indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } },
-      scales:{ x:{ beginAtZero:true, ticks:{ precision:0, font:{size:11} } }, y:{ ticks:{ font:{size:11} } } } }
+    type: 'bar',
+    data: { labels: MESES_ABREV, datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: { boxWidth: 12, font: { size: 11 }, padding: 10 }
+        },
+        tooltip: { mode: 'index', intersect: false },
+        datalabels: {
+          display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+          anchor: 'end',
+          align: 'top',
+          offset: 0,
+          color: '#1A1F2B',
+          font: { size: 9, weight: '700' },
+          formatter: v => v > 0 ? v : ''
+        }
+      },
+      scales: {
+        x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0, font: { size: 11 } },
+          grace: '15%'
+        }
+      }
+    }
   });
 }
+
 function renderizarAnalises(){
+  preencherFiltroAno();
+  const sel = document.getElementById('filtro-ano-analises');
+  const anoFiltro = sel ? Number(sel.value) : new Date().getFullYear();
+  const badge = document.getElementById('ano-selecionado-badge');
+  if(badge) badge.textContent = `Exibindo: ${anoFiltro}`;
+
   const listaLeads = filtrarPorPermissao(estado.leads);
   const mapaClientes = {};
   estado.clientes.forEach(c=>{ mapaClientes[c.id]=c; });
 
-  // Bloco 1: De onde vêm meus leads
-  desenharGraficoBarraHorizontal('grafico-leads-origem', contarPorChave(listaLeads, l=>l.origem));
-  desenharGraficoBarraHorizontal('grafico-leads-cidade', contarPorChave(listaLeads, l=>{
-    const c = mapaClientes[l.cliente_id];
-    return c ? c.cidade : null;
-  }));
+  // Filtra leads pelo ano selecionado
+  const leadsFiltrados = listaLeads.filter(l=>{
+    if(!l.criado_em) return false;
+    return new Date(l.criado_em).getFullYear() === anoFiltro;
+  });
 
-  // Bloco 2: O que estou vendendo (itens de orçamento, já filtrados por permissão via orçamento)
-  const orcamentosVisiveis = filtrarPorPermissao(estado.orcamentos);
+  const obterMesLead = l => l.criado_em ? new Date(l.criado_em).getMonth() : null;
+
+  // Bloco 1: Leads por origem (mensal)
+  desenharGraficoBarraMensal('grafico-leads-origem',
+    contarPorCategoriaMensal(leadsFiltrados, l => l.origem || 'Sem origem', obterMesLead)
+  );
+
+  // Bloco 1: Leads por cidade (mensal)
+  desenharGraficoBarraMensal('grafico-leads-cidade',
+    contarPorCategoriaMensal(leadsFiltrados, l => {
+      const c = mapaClientes[l.cliente_id];
+      return c && c.cidade ? c.cidade : null;
+    }, obterMesLead)
+  );
+
+  // Bloco 2: itens de orçamento do ano selecionado
+  const orcamentosVisiveis = filtrarPorPermissao(estado.orcamentos).filter(o=>{
+    if(!o.data_orcamento) return false;
+    return Number(o.data_orcamento.split('-')[0]) === anoFiltro;
+  });
   const idsOrcamentosVisiveis = new Set(orcamentosVisiveis.map(o=>o.id));
   const itensVisiveis = estado.itensOrcamento.filter(i=>idsOrcamentosVisiveis.has(i.orcamento_id));
 
-  desenharGraficoBarraHorizontal('grafico-itens-pintura', contarPorChave(itensVisiveis, i=>i.tipo_pintura_nome));
-  desenharGraficoBarraHorizontal('grafico-itens-cor', contarPorChave(itensVisiveis, i=>i.cor_nome));
-  desenharGraficoBarraHorizontal('grafico-itens-espessura', contarPorChave(itensVisiveis, i=>i.espessura_nome));
-  desenharGraficoBarraHorizontal('grafico-itens-isopor', contarPorChave(itensVisiveis, i=>i.tipo_isopor_nome));
+  // Obtém mês do item via data do orçamento pai
+  const mapaOrcData = {};
+  orcamentosVisiveis.forEach(o=>{ mapaOrcData[o.id] = o.data_orcamento; });
+  const obterMesItem = i => {
+    const data = mapaOrcData[i.orcamento_id];
+    return data ? Number(data.split('-')[1]) - 1 : null;
+  };
+
+  desenharGraficoBarraMensal('grafico-itens-pintura',
+    contarPorCategoriaMensal(itensVisiveis, i => i.tipo_pintura_nome || null, obterMesItem)
+  );
+  desenharGraficoBarraMensal('grafico-itens-cor',
+    contarPorCategoriaMensal(itensVisiveis, i => i.cor_nome || null, obterMesItem)
+  );
+  desenharGraficoBarraMensal('grafico-itens-espessura',
+    contarPorCategoriaMensal(itensVisiveis, i => i.espessura_nome || null, obterMesItem)
+  );
+  desenharGraficoBarraMensal('grafico-itens-isopor',
+    contarPorCategoriaMensal(itensVisiveis, i => i.tipo_isopor_nome || null, obterMesItem)
+  );
 }
 
 /* =====================================================================
@@ -1226,14 +1449,17 @@ function renderizarAnalises(){
    Realizado = soma de orçamentos com status 'aprovado', pela data_orcamento.
    Meta é fixa por vendedor (usuarios.meta_diaria) e vale para todo dia do período.
 ===================================================================== */
+/* =====================================================================
+   METAS — helpers
+===================================================================== */
 function obterPeriodoMetas(){
   const inputInicio = document.getElementById('metas-data-inicio');
-  const inputFim = document.getElementById('metas-data-fim');
+  const inputFim    = document.getElementById('metas-data-fim');
   if(!inputInicio.value || !inputFim.value){
     const hoje = new Date();
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     inputInicio.value = inicioMes.toISOString().slice(0,10);
-    inputFim.value = hoje.toISOString().slice(0,10);
+    inputFim.value    = hoje.toISOString().slice(0,10);
   }
   return { inicio: inputInicio.value, fim: inputFim.value };
 }
@@ -1247,55 +1473,458 @@ function listaDeDatas(inicio, fim){
   }
   return datas;
 }
+
+// Retorna meta diária de um vendedor para uma data específica (YYYY-MM-DD) ou mês atual
+function metaDiariaVendedor(vendedorId, dataStr){
+  let ano, mes;
+  if(dataStr){
+    const partes = dataStr.split('-');
+    ano = Number(partes[0]); mes = Number(partes[1]);
+  } else {
+    const hj = new Date(); ano = hj.getFullYear(); mes = hj.getMonth()+1;
+  }
+  try{
+    const cfgAnual = JSON.parse(localStorage.getItem('cfg_metas_ano_'+ano)||'{}');
+    if(cfgAnual[mes] && cfgAnual[mes][vendedorId] && cfgAnual[mes][vendedorId].metaDiaria !== undefined)
+      return Number(cfgAnual[mes][vendedorId].metaDiaria) || 0;
+    const cfgAntiga = JSON.parse(localStorage.getItem('cfg_metas_'+ano+'_'+mes)||'{}');
+    if(cfgAntiga[vendedorId] && cfgAntiga[vendedorId].metaDiaria !== undefined)
+      return Number(cfgAntiga[vendedorId].metaDiaria) || 0;
+  }catch(e){}
+  const u = estado.usuarios.find(u=>u.id===vendedorId);
+  return u ? Number(u.meta_diaria||0) : 0;
+}
+
+// Retorna todas as rows (id, nome, metaDiaria) configuradas para uma data
+function rowsMetasPorData(dataStr){
+  let ano, mes;
+  if(dataStr){ const p=dataStr.split('-'); ano=Number(p[0]); mes=Number(p[1]); }
+  else { const hj=new Date(); ano=hj.getFullYear(); mes=hj.getMonth()+1; }
+  try{
+    const cfgAnual = JSON.parse(localStorage.getItem('cfg_metas_ano_'+ano)||'{}');
+    if(cfgAnual[mes] && cfgAnual[mes]._rows) return cfgAnual[mes]._rows.map(r=>({ ...r, metaDiaria: cfgAnual[mes][r.id]?.metaDiaria||0 }));
+  }catch(e){}
+  return null; // null = usar lista do sistema
+}
+
+/* =====================================================================
+   METAS — tela de acompanhamento
+===================================================================== */
+function preencherFiltroVendedorMetas(){
+  const sel = document.getElementById('filtro-vendedor-metas');
+  if(!sel) return;
+  const vendedores = filtrarPorPermissao(estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo));
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos os vendedores</option>' +
+    vendedores.map(v=>`<option value="${v.id}" ${v.id===atual?'selected':''}>${escapeHtml(v.nome)}</option>`).join('');
+}
+
 function renderizarMetas(){
+  preencherFiltroVendedorMetas();
   const { inicio, fim } = obterPeriodoMetas();
   const datas = listaDeDatas(inicio, fim);
-  const vendedores = filtrarPorPermissao(estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo));
+  const filtroVendedorId = document.getElementById('filtro-vendedor-metas')?.value || '';
+
+  let vendedores = filtrarPorPermissao(estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo));
+  if(filtroVendedorId) vendedores = vendedores.filter(v=>v.id===filtroVendedorId);
+
   const orcamentosAprovados = filtrarPorPermissao(estado.orcamentos).filter(o=>o.status==='aprovado');
 
-  // Tabela diária: uma linha por (data, vendedor)
-  const linhas = [];
-  datas.forEach(data=>{
-    vendedores.forEach(v=>{
-      const realizado = orcamentosAprovados
-        .filter(o=>o.data_orcamento===data && o.vendedor_id===v.id)
-        .reduce((s,o)=>s+Number(o.total||0),0);
-      linhas.push({ data, vendedor:v, meta:Number(v.meta_diaria||0), realizado });
-    });
-  });
+  // Para cada vendedor: calcular meta diária e acumulados
   const corpo = document.getElementById('tbody-metas-diarias');
-  if(!linhas.length){
-    corpo.innerHTML = `<tr><td colspan="5"><div class="vazio">Nenhum vendedor com meta cadastrada para o período.</div></td></tr>`;
-  } else {
-    corpo.innerHTML = linhas.map(l=>{
-      const pct = l.meta>0 ? Math.round((l.realizado/l.meta)*100) : (l.realizado>0?100:0);
-      const corPct = pct>=100 ? 'selo-verde' : (pct>=50 ? 'selo-amarelo' : 'selo-vermelho');
-      return `<tr>
-        <td>${formatarData(l.data)}</td>
-        <td>${escapeHtml(l.vendedor.nome)}</td>
-        <td>${formatarMoeda(l.meta)}</td>
-        <td><strong>${formatarMoeda(l.realizado)}</strong></td>
-        <td><span class="selo ${corPct}">${pct}%</span></td>
-      </tr>`;
-    }).join('');
+
+  if(!vendedores.length){
+    corpo.innerHTML = `<tr><td colspan="7"><div class="vazio">Nenhum vendedor encontrado para o período.</div></td></tr>`;
+    return;
   }
 
-  // Gráfico acumulado: soma de meta e realizado de TODOS os vendedores visíveis, dia a dia, acumulado
-  let metaAcumulada = 0, realizadoAcumulado = 0;
-  const metaAcumuladaSerie = [], realizadoAcumuladoSerie = [], rotulosDatas = [];
-  datas.forEach(data=>{
-    const metaDoDia = vendedores.reduce((s,v)=>s+Number(v.meta_diaria||0),0);
-    const realizadoDoDia = orcamentosAprovados.filter(o=>o.data_orcamento===data).reduce((s,o)=>s+Number(o.total||0),0);
-    metaAcumulada += metaDoDia;
-    realizadoAcumulado += realizadoDoDia;
-    rotulosDatas.push(formatarData(data));
-    metaAcumuladaSerie.push(metaAcumulada);
-    realizadoAcumuladoSerie.push(realizadoAcumulado);
-  });
+  // Monta linhas com acumulado por vendedor selecionado (ou todos somados se nenhum filtro)
+  const linhas = [];
+
+  if(filtroVendedorId){
+    // Um vendedor: linha por dia com acumulado dele
+    const v = vendedores[0];
+    let metaAcum = 0, realAcum = 0;
+    datas.forEach(data=>{
+      const meta = metaDiariaVendedor(v.id, data);
+      const real = orcamentosAprovados
+        .filter(o=>o.data_orcamento===data && o.vendedor_id===v.id)
+        .reduce((s,o)=>s+Number(o.total||0),0);
+      metaAcum += meta;
+      realAcum += real;
+      linhas.push({ data, meta, real, metaAcum, realAcum });
+    });
+  } else {
+    // Todos: soma todos os vendedores por dia
+    let metaAcum = 0, realAcum = 0;
+    datas.forEach(data=>{
+      const meta = vendedores.reduce((s,v)=>s+metaDiariaVendedor(v.id, data),0);
+      const real = orcamentosAprovados
+        .filter(o=>o.data_orcamento===data && vendedores.some(v=>v.id===o.vendedor_id))
+        .reduce((s,o)=>s+Number(o.total||0),0);
+      metaAcum += meta;
+      realAcum += real;
+      linhas.push({ data, meta, real, metaAcum, realAcum });
+    });
+  }
+
+  corpo.innerHTML = linhas.map(l=>{
+    const pctDia  = l.meta>0  ? Math.round((l.real/l.meta)*100)         : (l.real>0?100:0);
+    const pctAcum = l.metaAcum>0 ? Math.round((l.realAcum/l.metaAcum)*100) : (l.realAcum>0?100:0);
+    const corDia  = pctDia>=100  ? 'selo-verde' : (pctDia>=50  ? 'selo-amarelo' : 'selo-vermelho');
+    const corAcum = pctAcum>=100 ? 'selo-verde' : (pctAcum>=50 ? 'selo-amarelo' : 'selo-vermelho');
+    return `<tr>
+      <td>${formatarData(l.data)}</td>
+      <td>${formatarMoeda(l.meta)}</td>
+      <td><strong>${formatarMoeda(l.real)}</strong></td>
+      <td><span class="selo ${corDia}">${pctDia}%</span></td>
+      <td>${formatarMoeda(l.metaAcum)}</td>
+      <td><strong>${formatarMoeda(l.realAcum)}</strong></td>
+      <td><span class="selo ${corAcum}">${pctAcum}%</span></td>
+    </tr>`;
+  }).join('');
+
+  // Gráfico acumulado
+  const metaAcumSerie = linhas.map(l=>l.metaAcum);
+  const realAcumSerie = linhas.map(l=>l.realAcum);
+  const rotulosDatas  = linhas.map(l=>formatarData(l.data));
   desenharGrafico('grafico-metas-acumulado','line', rotulosDatas, [
-    { label:'Meta acumulada', data: metaAcumuladaSerie, borderColor:'#94A3B8', backgroundColor:'rgba(148,163,184,.10)', borderDash:[6,4], fill:false, tension:.2 },
-    { label:'Realizado acumulado', data: realizadoAcumuladoSerie, borderColor:'#1F9D55', backgroundColor:'rgba(31,157,85,.12)', fill:true, tension:.2 }
+    { label:'Meta acumulada',     data: metaAcumSerie, borderColor:'#94A3B8', backgroundColor:'rgba(148,163,184,.10)', borderDash:[6,4], fill:false, tension:.2 },
+    { label:'Realizado acumulado', data: realAcumSerie, borderColor:'#1F9D55', backgroundColor:'rgba(31,157,85,.12)', fill:true, tension:.2 }
   ]);
+}
+
+/* =====================================================================
+   CONFIG METAS — Janeiro a Dezembro, visão anual
+===================================================================== */
+const NOMES_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function parseMoedaBR(str){
+  if(!str) return 0;
+  return parseFloat(String(str).replace(/\./g,'').replace(',','.')) || 0;
+}
+function formatarMoedaInput(v){
+  return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function carregarCfgAno(ano){
+  try{ const r = localStorage.getItem('cfg_metas_ano_'+ano); return r ? JSON.parse(r) : {}; }catch(e){ return {}; }
+}
+function salvarCfgAno(ano, dados){
+  try{ localStorage.setItem('cfg_metas_ano_'+ano, JSON.stringify(dados)); }catch(e){}
+}
+// Compatibilidade: carrega config por mês (chave antiga) se existir
+function carregarConfigMetasLocal(mes, ano){
+  try{
+    // Tenta nova chave anual primeiro
+    const anoData = carregarCfgAno(ano);
+    if(anoData[mes]) return anoData[mes];
+    // Fallback: chave antiga por mês
+    const r = localStorage.getItem('cfg_metas_'+ano+'_'+mes);
+    return r ? JSON.parse(r) : null;
+  }catch(e){ return null; }
+}
+
+/* --- renderização --- */
+function renderizarConfigMetas(){
+  const hoje = new Date();
+  const selAno = document.getElementById('cfg-ano');
+  if(!selAno) return;
+
+  // Preenche anos
+  if(!selAno.options.length){
+    const anoAtual = hoje.getFullYear();
+    for(let a = anoAtual - 1; a <= anoAtual + 3; a++){
+      const opt = document.createElement('option');
+      opt.value = a; opt.textContent = a;
+      if(a === anoAtual) opt.selected = true;
+      selAno.appendChild(opt);
+    }
+  }
+
+  const ano = Number(selAno.value);
+  const cfgAno = carregarCfgAno(ano);
+
+  // --- Recupera lista de vendedores da config salva ou monta a partir do estado ---
+  const refMes = Object.keys(cfgAno).find(k => cfgAno[k]._rows);
+  let rows;
+  if(refMes){
+    rows = cfgAno[refMes]._rows; // [{id, nome, pct}]
+  } else {
+    // Fallback: usa vendedores ativos do sistema
+    const vendSistema = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo);
+    const pctPadrao = vendSistema.length ? parseFloat((100/vendSistema.length).toFixed(2)) : 0;
+    // Tenta carregar pcts de _pcts legado
+    const pctsSalvos = refMes ? (cfgAno[refMes]._pcts||{}) : {};
+    rows = vendSistema.map(v=>({ id:v.id, nome:v.nome, pct: pctsSalvos[v.id] !== undefined ? pctsSalvos[v.id] : pctPadrao }));
+  }
+
+  // Guarda no estado temporário para manipulação
+  estado._cfgRows = rows.map(r=>({...r}));
+
+  renderizarLinhasVendedores();
+
+  // --- cards dos 12 meses ---
+  const lista = document.getElementById('cfg-meses-lista');
+  if(!lista) return;
+  lista.innerHTML = NOMES_MESES.map((nomeMes, idx)=>{
+    const m = idx + 1;
+    const cfgM = cfgAno[m] || {};
+    const metaTotal = cfgM._metaTotal || 0;
+    const diasUteis = cfgM._diasUteis || '';
+    const isMesAtual = (m === hoje.getMonth()+1 && ano === hoje.getFullYear());
+
+    return `<div class="painel" style="padding:0;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:${isMesAtual?'var(--azul)':'var(--azul-claro)'};border-radius:14px 14px 0 0;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:14px;font-weight:800;color:${isMesAtual?'#fff':'var(--azul-escuro)'};">${nomeMes}</span>
+          ${isMesAtual?'<span style="font-size:11px;background:rgba(255,255,255,.25);color:#fff;padding:2px 8px;border-radius:10px;font-weight:700;">Mês atual</span>':''}
+        </div>
+        <span id="cfg-m${m}-diaria-emp" style="font-size:13px;font-weight:700;color:${isMesAtual?'rgba(255,255,255,.85)':'var(--azul)'};" ></span>
+      </div>
+      <div style="padding:14px 18px 16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="campo" style="margin:0;">
+            <label>Meta total do mês (R$)</label>
+            <input type="text" id="cfg-m${m}-total"
+              value="${metaTotal ? formatarMoedaInput(metaTotal) : ''}"
+              placeholder="Ex: 1.000.000,00"
+              oninput="recalcularMes(${m})"
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;">
+          </div>
+          <div class="campo" style="margin:0;">
+            <label>Dias úteis</label>
+            <input type="number" id="cfg-m${m}-dias" min="1" max="31"
+              value="${diasUteis}"
+              placeholder="Ex: 22"
+              oninput="recalcularMes(${m})"
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;">
+          </div>
+        </div>
+        <div class="tabela-wrap">
+          <table style="font-size:12.5px;">
+            <thead><tr>
+              <th style="padding:8px 12px;">Vendedor</th>
+              <th style="padding:8px 12px;">%</th>
+              <th style="padding:8px 12px;">Meta Mensal</th>
+              <th style="padding:8px 12px;">Meta Diária</th>
+            </tr></thead>
+            <tbody id="cfg-m${m}-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  recalcularTodosMeses();
+}
+
+/* --- renderiza as linhas de vendedor no bloco de distribuição --- */
+function renderizarLinhasVendedores(){
+  const rows = estado._cfgRows || [];
+  const vendSistema = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo);
+
+  const el = document.getElementById('cfg-vendedores-pct');
+  if(!el) return;
+
+  el.innerHTML = rows.map((r, i)=>{
+    // Monta lista de opções: vendedores do sistema + nome livre
+    const optsSistema = vendSistema.map(v=>`<option value="${v.id}" ${r.id===v.id?'selected':''}>${escapeHtml(v.nome)}</option>`).join('');
+    // Se o id não bate com nenhum do sistema, é um nome livre → mostramos input de texto
+    const isLivre = r.id.startsWith('livre_');
+
+    return `<div style="display:grid;grid-template-columns:1fr 130px 44px;align-items:center;gap:10px;padding:10px 14px;background:var(--azul-claro2);border-radius:10px;border:1px solid var(--borda);" id="cfg-row-${i}">
+      <div>
+        ${isLivre
+          ? `<input type="text" value="${escapeHtml(r.nome)}" placeholder="Nome do vendedor"
+               oninput="cfgRowNome(${i}, this.value)"
+               style="width:100%;padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13.5px;font-weight:600;">`
+          : `<select onchange="cfgRowSelect(${i}, this.value)"
+               style="width:100%;padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13.5px;font-weight:600;background:#fff;">
+               ${optsSistema}
+               <option value="__livre__">✏️ Nome livre...</option>
+             </select>`
+        }
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <input type="number" min="0" max="100" step="0.01"
+          id="cfg-pct-row-${i}"
+          value="${Number(r.pct).toFixed(2)}"
+          oninput="cfgRowPct(${i}, this.value)"
+          style="width:78px;padding:7px 8px;border:1.5px solid var(--borda);border-radius:8px;font-size:13.5px;text-align:right;">
+        <span style="font-weight:700;color:var(--texto-suave);font-size:13px;">%</span>
+      </div>
+      <button onclick="cfgRemoverVendedor(${i})" title="Remover"
+        style="width:36px;height:36px;border-radius:8px;border:1px solid var(--borda);background:#fff;color:var(--vermelho);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;">✕</button>
+    </div>`;
+  }).join('');
+
+  atualizarBadgePct();
+  recalcularTodosMeses();
+}
+
+function cfgRowPct(i, val){
+  if(!estado._cfgRows) return;
+  estado._cfgRows[i].pct = parseFloat(val)||0;
+  atualizarBadgePct();
+  recalcularTodosMeses();
+}
+function cfgRowNome(i, val){
+  if(!estado._cfgRows) return;
+  estado._cfgRows[i].nome = val;
+  recalcularTodosMeses();
+}
+function cfgRowSelect(i, val){
+  if(!estado._cfgRows) return;
+  if(val === '__livre__'){
+    estado._cfgRows[i] = { id:'livre_'+Date.now(), nome:'', pct: estado._cfgRows[i].pct };
+  } else {
+    const v = estado.usuarios.find(u=>u.id===val);
+    if(v) estado._cfgRows[i] = { id:v.id, nome:v.nome, pct: estado._cfgRows[i].pct };
+  }
+  renderizarLinhasVendedores();
+}
+function cfgAdicionarVendedor(){
+  if(!estado._cfgRows) estado._cfgRows = [];
+  const vendSistema = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo);
+  // Sugere o primeiro vendedor ainda não adicionado, ou nome livre
+  const usados = new Set(estado._cfgRows.map(r=>r.id));
+  const disponiveis = vendSistema.filter(v=>!usados.has(v.id));
+  if(disponiveis.length){
+    estado._cfgRows.push({ id:disponiveis[0].id, nome:disponiveis[0].nome, pct:0 });
+  } else {
+    estado._cfgRows.push({ id:'livre_'+Date.now(), nome:'', pct:0 });
+  }
+  renderizarLinhasVendedores();
+}
+function cfgRemoverVendedor(i){
+  if(!estado._cfgRows || estado._cfgRows.length <= 1){ notif('É necessário pelo menos um vendedor.','erro'); return; }
+  estado._cfgRows.splice(i,1);
+  renderizarLinhasVendedores();
+}
+function cfgDistribuirIgual(){
+  if(!estado._cfgRows || !estado._cfgRows.length) return;
+  const n = estado._cfgRows.length;
+  const pct = parseFloat((100/n).toFixed(4));
+  // Ajuste fino: o último recebe o resto para fechar 100
+  let soma = 0;
+  estado._cfgRows.forEach((r,i)=>{
+    r.pct = i < n-1 ? pct : parseFloat((100 - soma).toFixed(4));
+    soma += pct;
+  });
+  renderizarLinhasVendedores();
+}
+
+function atualizarBadgePct(){
+  const rows = estado._cfgRows || [];
+  let total = 0;
+  rows.forEach((r,i)=>{
+    const el = document.getElementById('cfg-pct-row-'+i);
+    total += el ? parseFloat(el.value||0) : r.pct;
+  });
+  const badge = document.getElementById('cfg-total-pct-badge');
+  if(!badge) return;
+  const ok = Math.abs(total-100) < 0.1;
+  badge.textContent = `Total: ${total.toFixed(1)}%`;
+  badge.style.background = ok ? 'var(--verde-claro)' : (total>100 ? 'var(--vermelho-claro)' : 'var(--amarelo-claro)');
+  badge.style.color       = ok ? 'var(--verde)'       : (total>100 ? 'var(--vermelho)'       : '#A8770C');
+}
+
+function recalcularMes(m){
+  const metaTotal = parseMoedaBR(document.getElementById('cfg-m'+m+'-total')?.value||'');
+  const diasUteis = parseInt(document.getElementById('cfg-m'+m+'-dias')?.value)||0;
+  const metaDiariaEmp = diasUteis > 0 ? metaTotal / diasUteis : 0;
+
+  const elDiaria = document.getElementById('cfg-m'+m+'-diaria-emp');
+  if(elDiaria) elDiaria.textContent = metaTotal > 0 ? 'Meta diária: ' + formatarMoeda(metaDiariaEmp) : '';
+
+  const rows = estado._cfgRows || [];
+  const tbody = document.getElementById('cfg-m'+m+'-tbody');
+  if(!tbody) return;
+
+  tbody.innerHTML = rows.map((r,i)=>{
+    // Lê o % atual do input (pode ter sido editado sem salvar ainda)
+    const elPct = document.getElementById('cfg-pct-row-'+i);
+    const pct = elPct ? parseFloat(elPct.value||0) : r.pct;
+    const valMensal = metaTotal * (pct/100);
+    const valDiario = diasUteis > 0 ? valMensal / diasUteis : 0;
+    const cor = pct > 0 ? 'var(--azul)' : 'var(--texto-suave)';
+    const nomeExib = r.nome || '—';
+    return `<tr>
+      <td style="padding:7px 12px;"><strong>${escapeHtml(nomeExib)}</strong></td>
+      <td style="padding:7px 12px;color:${cor};font-weight:700;">${pct.toFixed(1)}%</td>
+      <td style="padding:7px 12px;">${formatarMoeda(valMensal)}</td>
+      <td style="padding:7px 12px;font-weight:700;color:var(--azul);">${formatarMoeda(valDiario)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function recalcularTodosMeses(){
+  for(let m=1; m<=12; m++) recalcularMes(m);
+}
+
+function salvarConfigMetas(){
+  const selAno = document.getElementById('cfg-ano');
+  if(!selAno) return;
+  const ano = Number(selAno.value);
+
+  // Sincroniza pcts dos inputs para o estado
+  const rows = estado._cfgRows || [];
+  rows.forEach((r,i)=>{
+    const el = document.getElementById('cfg-pct-row-'+i);
+    if(el) r.pct = parseFloat(el.value||0);
+    const elNome = document.getElementById('cfg-row-'+i)?.querySelector('input[type=text]');
+    if(elNome) r.nome = elNome.value;
+  });
+
+  // Valida %
+  const totalPct = rows.reduce((s,r)=>s+r.pct, 0);
+  if(Math.abs(totalPct-100) > 0.5){
+    notif('A soma dos % está em ' + totalPct.toFixed(1) + '%. Ajuste para 100%.','erro');
+    return;
+  }
+  // Valida nomes
+  for(const r of rows){
+    if(!r.nome || !r.nome.trim()){ notif('Preencha o nome de todos os vendedores.','erro'); return; }
+  }
+
+  // Monta objeto anual
+  const cfgAno = {};
+  let algumMesPreenchido = false;
+  for(let m=1; m<=12; m++){
+    const metaTotal = parseMoedaBR(document.getElementById('cfg-m'+m+'-total')?.value||'');
+    const diasUteis = parseInt(document.getElementById('cfg-m'+m+'-dias')?.value)||0;
+    if(!metaTotal && !diasUteis) continue;
+    algumMesPreenchido = true;
+    const porVendedor = {};
+    rows.forEach(r=>{
+      const val = metaTotal * (r.pct/100);
+      const metaDiaria = diasUteis > 0 ? val / diasUteis : 0;
+      porVendedor[r.id] = { _pct: r.pct, _val: val, metaDiaria, nome: r.nome };
+    });
+    cfgAno[m] = { _metaTotal: metaTotal, _diasUteis: diasUteis, _rows: rows.map(r=>({...r})), ...porVendedor };
+  }
+
+  if(!algumMesPreenchido){
+    notif('Preencha a meta e os dias úteis de ao menos um mês.','erro');
+    return;
+  }
+
+  salvarCfgAno(ano, cfgAno);
+
+  // Atualiza estado.configMetas para o mês atual
+  const hoje = new Date();
+  if(ano === hoje.getFullYear()){
+    const mesAtual = hoje.getMonth()+1;
+    estado.configMetas = {};
+    if(cfgAno[mesAtual]){
+      rows.forEach(r=>{
+        if(cfgAno[mesAtual][r.id]) estado.configMetas[r.id] = cfgAno[mesAtual][r.id].metaDiaria;
+      });
+    }
+  }
+
+  notif('Metas de ' + ano + ' salvas com sucesso!','sucesso');
 }
 
 /* =====================================================================
