@@ -231,6 +231,41 @@ tbody tr:hover{background:#FAFBFD;}
 .rodape-modal{padding:16px 24px;border-top:1px solid var(--borda);display:flex;justify-content:flex-end;gap:10px;}
 .linha-campos{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 
+
+
+
+/* ===================== FOLLOW-UP / REVERTER ===================== */
+.icone-btn.followup:hover{background:var(--amarelo-claro);color:var(--amarelo);border-color:var(--amarelo);}
+.icone-btn.reverter:hover{background:var(--roxo-claro);color:var(--roxo);border-color:var(--roxo);}
+
+/* ===================== PERMISSÕES ===================== */
+.perm-label-check{
+  display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--fundo);
+  border-radius:8px;cursor:pointer;border:1.5px solid var(--borda);
+  transition:border-color .15s,background .15s;user-select:none;
+}
+.perm-label-check:hover{background:var(--azul-claro);}
+.perm-label-check input:checked ~ span{color:var(--azul);font-weight:700;}
+
+/* ===================== RELÓGIOS DE META ===================== */
+.secao-relogios{margin-bottom:22px;}
+.secao-relogios h3{font-size:14.5px;font-weight:700;margin:0 0 14px;}
+.grade-relogios{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;}
+.relogio-meta{
+  background:var(--branco);border:1px solid var(--borda);border-radius:16px;
+  padding:18px 16px 14px;box-shadow:var(--sombra);
+  display:flex;flex-direction:column;align-items:center;min-width:150px;flex:1;max-width:190px;
+}
+.relogio-meta .rm-nome{font-size:12px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;
+  letter-spacing:.03em;margin-bottom:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+.relogio-meta .rm-svg{width:110px;height:110px;position:relative;}
+.relogio-meta .rm-valores{margin-top:10px;text-align:center;}
+.relogio-meta .rm-pct{font-size:11px;color:var(--texto-suave);}
+.relogio-meta .rm-valor-real{font-size:12.5px;font-weight:700;color:var(--texto);}
+.relogio-meta .rm-valor-meta{font-size:11px;color:var(--texto-suave);}
+.relogio-global{max-width:210px;}
+.relogio-global .rm-svg{width:130px;height:130px;}
+
 /* ===================== FUNIL KANBAN ===================== */
 .kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
 .coluna-kanban{
@@ -362,6 +397,16 @@ tbody tr:hover{background:#FAFBFD;}
         <!-- ============================== DASHBOARD ============================== -->
         <section class="pagina" id="pagina-dashboard">
           <div class="grade-kpi" id="grade-kpi"></div>
+
+          <!-- Relógios de Meta -->
+          <div class="secao-relogios painel" id="secao-relogios-meta" style="margin-bottom:22px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+              <h3 style="margin:0;font-size:14.5px;">🎯 Metas do Mês — Realizado vs Meta</h3>
+              <span id="badge-periodo-relogios" style="font-size:11.5px;color:var(--texto-suave);background:var(--azul-claro);padding:4px 12px;border-radius:20px;font-weight:600;"></span>
+            </div>
+            <div class="grade-relogios" id="grade-relogios-meta"></div>
+          </div>
+
           <div class="grade-graficos">
             <div class="painel">
               <h3>Funil de vendas por etapa</h3>
@@ -387,63 +432,135 @@ tbody tr:hover{background:#FAFBFD;}
         <!-- ============================== ANÁLISES ============================== -->
         <section class="pagina" id="pagina-analises">
 
-          <!-- Filtro de Ano -->
-          <div class="barra-acoes" style="margin-bottom:20px;">
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-              <label style="font-size:13.5px;font-weight:600;color:var(--texto-suave);">Filtrar por ano:</label>
-              <select id="filtro-ano-analises" onchange="renderizarAnalises()" style="padding:9px 14px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;color:var(--texto);font-weight:500;cursor:pointer;"></select>
+          <!-- Filtros completos: Ano + Mês + Datas livres -->
+          <div style="padding:14px 18px;background:var(--azul-claro2);border-radius:12px;border:1px solid var(--borda);margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+              <!-- Filtro rápido: Ano + Mês -->
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:12px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.04em;">Período</span>
+                <select id="filtro-ano-analises" onchange="aoMudarFiltroAnalitico()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;cursor:pointer;"></select>
+                <select id="filtro-mes-analises" onchange="aoMudarFiltroAnalitico()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;cursor:pointer;">
+                  <option value="">Todos os meses</option>
+                  <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+                  <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+                  <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+                  <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                </select>
+              </div>
+              <!-- Separador -->
+              <span style="font-size:12px;color:var(--texto-suave);font-weight:500;">ou período livre:</span>
+              <!-- Datas livres -->
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <input type="date" id="analises-data-inicio" onchange="aoMudarDataAnalitica()" style="padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;">
+                <span style="font-size:12px;color:var(--texto-suave);">até</span>
+                <input type="date" id="analises-data-fim" onchange="aoMudarDataAnalitica()" style="padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;">
+                <button onclick="limparFiltrosAnaliticos()" style="padding:6px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:12px;background:#fff;color:var(--texto-suave);cursor:pointer;font-weight:600;">✕ Limpar</button>
+              </div>
+              <!-- Badge ativo -->
+              <div id="ano-selecionado-badge" style="font-size:11.5px;font-weight:700;color:var(--azul);background:var(--azul-claro);padding:4px 12px;border-radius:20px;margin-left:auto;"></div>
             </div>
-            <div id="ano-selecionado-badge" style="font-size:12px;color:var(--texto-suave);background:var(--azul-claro);padding:5px 12px;border-radius:20px;font-weight:600;"></div>
           </div>
 
-          <h3 style="margin:0 0 4px;font-size:15px;">De onde vêm meus leads</h3>
-          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Leads cadastrados por mês, agrupados por origem e cidade do cliente.</p>
-          <div class="grade-graficos">
+          <!-- Bloco: Origem dos leads (pizza) + Vendas por cidade (barras horizontais) -->
+          <h3 style="margin:0 0 4px;font-size:15px;">Origem e distribuição geográfica</h3>
+          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Leads e orçamentos combinados no período selecionado.</p>
+          <div class="grade-graficos" style="margin-bottom:16px;">
             <div class="painel">
-              <h3>Leads por Mês — Origem</h3>
+              <h3>Origem dos Leads (pizza)</h3>
+              <canvas id="grafico-pizza-origem" style="max-height:300px;"></canvas>
+            </div>
+            <div class="painel">
+              <h3>Leads por Mês — Origem (histórico)</h3>
               <canvas id="grafico-leads-origem" style="max-height:300px;"></canvas>
             </div>
+          </div>
+
+          <!-- Vendas por cidade — barras horizontais estilo anexo -->
+          <h3 style="margin:0 0 4px;font-size:15px;">Vendas por cidade</h3>
+          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Valor total de orçamentos aprovados por cidade do cliente, no período selecionado.</p>
+          <div class="painel" style="margin-bottom:16px;overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+              <h3 style="margin:0;">Valor de Vendas por Cidade (R$)</h3>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm" id="btn-cidade-valor" onclick="alternarModoCidade('valor')"
+                  style="background:var(--azul);color:#fff;border:none;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;">Valor (R$)</button>
+                <button class="btn btn-sm" id="btn-cidade-qtd" onclick="alternarModoCidade('qtd')"
+                  style="background:var(--azul-claro);color:var(--azul);border:1.5px solid var(--borda);padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;">Quantidade</button>
+                <button class="btn btn-sm" id="btn-cidade-preco" onclick="alternarModoCidade('preco')"
+                  style="background:var(--azul-claro);color:var(--azul);border:1.5px solid var(--borda);padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;">Preço Médio</button>
+              </div>
+            </div>
+            <div id="grafico-cidades-wrap" style="overflow-y:auto;max-height:520px;padding-right:4px;"></div>
+          </div>
+
+          <h3 style="margin:0 0 4px;font-size:15px;">Leads por origem (mensal)</h3>
+          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Leads cadastrados por mês, agrupados por cidade do cliente.</p>
+          <div class="grade-graficos" style="margin-bottom:16px;">
             <div class="painel">
               <h3>Leads por Mês — Cidade</h3>
               <canvas id="grafico-leads-cidade" style="max-height:300px;"></canvas>
             </div>
+            <div class="painel">
+              <h3>Preço Médio por Cidade</h3>
+              <canvas id="grafico-preco-medio-cidade" style="max-height:300px;"></canvas>
+            </div>
           </div>
 
-          <h3 style="margin:28px 0 4px;font-size:15px;">O que estou vendendo</h3>
-          <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Itens de orçamento por mês, agrupados por pintura, cor, espessura e isopor.</p>
+          <h3 style="margin:28px 0 2px;font-size:15px;">O que estou vendendo</h3>
+          <p id="desc-itens-vendendo" style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Itens de orçamento agrupados por tipo, no período selecionado.</p>
           <div class="grade-graficos">
             <div class="painel">
-              <h3>Itens por Mês — Tipo de Pintura</h3>
-              <canvas id="grafico-itens-pintura" style="max-height:300px;"></canvas>
+              <h3 id="titulo-grafico-pintura">Pintura por Mês</h3>
+              <canvas id="grafico-itens-pintura" style="max-height:320px;"></canvas>
             </div>
             <div class="painel">
-              <h3>Itens por Mês — Cor</h3>
-              <canvas id="grafico-itens-cor" style="max-height:300px;"></canvas>
+              <h3 id="titulo-grafico-cor">Cor por Mês</h3>
+              <canvas id="grafico-itens-cor" style="max-height:320px;"></canvas>
             </div>
           </div>
           <div class="grade-graficos" style="margin-top:16px;">
             <div class="painel">
-              <h3>Itens por Mês — Espessura</h3>
-              <canvas id="grafico-itens-espessura" style="max-height:300px;"></canvas>
+              <h3 id="titulo-grafico-espessura">Espessura por Mês</h3>
+              <canvas id="grafico-itens-espessura" style="max-height:320px;"></canvas>
             </div>
             <div class="painel">
-              <h3>Itens por Mês — Tipo de Isopor</h3>
-              <canvas id="grafico-itens-isopor" style="max-height:300px;"></canvas>
+              <h3 id="titulo-grafico-isopor">Isopor por Mês</h3>
+              <canvas id="grafico-itens-isopor" style="max-height:320px;"></canvas>
             </div>
           </div>
         </section>
 
         <!-- ============================== METAS ============================== -->
         <section class="pagina" id="pagina-metas">
-          <div class="barra-acoes" style="flex-wrap:wrap;gap:10px;">
-            <div class="busca-filtros" style="flex-wrap:wrap;gap:10px;">
+          <div class="barra-acoes" style="flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+            <!-- Filtros rápidos: Ano + Mês -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <label style="font-size:12.5px;font-weight:600;color:var(--texto-suave);">Acesso rápido:</label>
+              <select id="metas-filtro-ano" onchange="aplicarFiltroRapidoMetas()" style="padding:8px 12px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;font-weight:600;"></select>
+              <select id="metas-filtro-mes" onchange="aplicarFiltroRapidoMetas()" style="padding:8px 12px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;font-weight:600;">
+                <option value="">Mês completo</option>
+                <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+                <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+                <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+                <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+              </select>
+              <span style="font-size:11.5px;color:var(--texto-suave);">ou por data:</span>
               <input type="date" id="metas-data-inicio" onchange="renderizarMetas()">
               <input type="date" id="metas-data-fim" onchange="renderizarMetas()">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
               <select id="filtro-vendedor-metas" onchange="renderizarMetas()" style="padding:9px 13px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;">
                 <option value="">Todos os vendedores</option>
               </select>
+              <button class="btn btn-secundario" onclick="gerarPDFMetas()" style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9 17v-4h1.5a1.5 1.5 0 0 1 0 3H9"/><path d="M13.2 17v-4h1.3"/><path d="M13.2 15h1"/></svg>
+                Exportar PDF
+              </button>
             </div>
           </div>
+
+          <!-- KPI Cards -->
+          <div id="metas-kpi-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;"></div>
 
           <h3 style="margin:0 0 4px;font-size:15px;">Meta x Realizado por dia</h3>
           <p style="margin:0 0 14px;font-size:12.5px;color:var(--texto-suave);">Realizado considera orçamentos com status "Aprovado", pela data do orçamento.</p>
@@ -483,17 +600,15 @@ tbody tr:hover{background:#FAFBFD;}
             </button>
           </div>
 
-          <!-- Bloco de distribuição % (definido uma vez, aplica a todos os meses) -->
+          <!-- Bloco de vendedores (gerenciamento da lista, sem % global) -->
           <div class="painel" style="margin-bottom:20px;" id="cfg-bloco-distribuicao">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
               <div>
-                <h3 style="margin:0 0 2px;">Distribuição por Vendedor</h3>
-                <p style="margin:0;font-size:12px;color:var(--texto-suave);">Defina o % de cada vendedor — será aplicado em todos os meses. Você pode editar, adicionar ou remover.</p>
+                <h3 style="margin:0 0 2px;">Vendedores</h3>
+                <p style="margin:0;font-size:12px;color:var(--texto-suave);">Gerencie os vendedores. Em cada mês, preencha o valor individual de cada um — a soma gera a meta mensal automaticamente.</p>
               </div>
               <div style="display:flex;align-items:center;gap:10px;">
-                <div id="cfg-total-pct-badge" style="font-size:12.5px;font-weight:700;padding:5px 14px;border-radius:20px;background:var(--verde-claro);color:var(--verde);">Total: 0%</div>
-                <button class="btn btn-secundario btn-sm" onclick="cfgAdicionarVendedor()">+ Adicionar</button>
-                <button class="btn btn-fantasma btn-sm" onclick="cfgDistribuirIgual()" title="Distribuir % igualmente entre todos">⚖️ Igualar %</button>
+                <button class="btn btn-secundario btn-sm" onclick="cfgAdicionarVendedor()">+ Adicionar Vendedor</button>
               </div>
             </div>
             <div id="cfg-vendedores-pct" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -506,12 +621,43 @@ tbody tr:hover{background:#FAFBFD;}
 
         <!-- ============================== FUNIL ============================== -->
         <section class="pagina" id="pagina-funil">
-          <div class="barra-acoes">
-            <div class="busca-filtros">
-              <input type="text" id="busca-funil" placeholder="Buscar lead ou cliente..." oninput="renderizarFunil()">
+          <div class="barra-acoes" style="flex-wrap:wrap;gap:10px;">
+            <div class="busca-filtros" style="flex-wrap:wrap;gap:10px;">
+              <select id="filtro-vendedor-funil" onchange="renderizarFunil()" style="padding:9px 13px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;">
+                <option value="">Todos os vendedores</option>
+              </select>
+              <select id="filtro-periodo-funil" onchange="renderizarFunil()" style="padding:9px 13px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#fff;">
+                <option value="">Todos os períodos</option>
+                <option value="mes">Este mês</option>
+                <option value="trimestre">Este trimestre</option>
+                <option value="ano">Este ano</option>
+              </select>
             </div>
-            <button class="btn btn-primario" onclick="abrirModalLead()">+ Novo Lead</button>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secundario" onclick="navegarPagina('funil')">📋 Ver Leads</button>
+              <button class="btn btn-secundario" onclick="navegarPagina('orcamentos')">📄 Ver Orçamentos</button>
+            </div>
           </div>
+
+          <!-- Funil gráfico -->
+          <div class="painel" style="margin-bottom:18px;padding:20px 24px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+              <div>
+                <h3 style="margin:0 0 2px;font-size:14.5px;">Funil de Vendas — Leads + Orçamentos</h3>
+                <p style="margin:0;font-size:12px;color:var(--texto-suave);">Alimentado automaticamente por leads e orçamentos. Orçamentos aprovados = Ganho; rejeitados = Perdido.</p>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm" id="btn-funil-qtd" onclick="alternarFunilModo('qtd')"
+                  style="background:var(--azul);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;">Quantidade</button>
+                <button class="btn btn-sm" id="btn-funil-val" onclick="alternarFunilModo('val')"
+                  style="background:var(--azul-claro);color:var(--azul);border:1px solid var(--borda);padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;">Valor (R$)</button>
+              </div>
+            </div>
+            <div id="funil-grafico-wrap" style="width:100%;max-width:680px;margin:0 auto;"></div>
+            <div id="funil-taxa" style="text-align:center;font-size:13px;font-weight:600;color:var(--texto-suave);margin-top:12px;"></div>
+          </div>
+
+          <!-- Kanban por etapa (alimentado automaticamente) -->
           <div class="kanban" id="kanban-funil"></div>
         </section>
 
@@ -556,23 +702,44 @@ tbody tr:hover{background:#FAFBFD;}
 
         <!-- ============================== ORÇAMENTOS ============================== -->
         <section class="pagina" id="pagina-orcamentos">
-          <div class="barra-acoes">
-            <div class="busca-filtros">
-              <input type="text" id="busca-orcamentos" placeholder="Buscar por cliente..." oninput="renderizarOrcamentos()">
-              <select id="filtro-status-orcamento" onchange="renderizarOrcamentos()">
-                <option value="">Todos os status</option>
-                <option value="rascunho">Rascunho</option>
-                <option value="enviado">Enviado</option>
-                <option value="aprovado">Aprovado</option>
-                <option value="rejeitado">Rejeitado</option>
-              </select>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+            <!-- Linha 1: busca + status + novo -->
+            <div class="barra-acoes" style="margin-bottom:0;">
+              <div class="busca-filtros">
+                <input type="text" id="busca-orcamentos" placeholder="Buscar por cliente..." oninput="renderizarOrcamentos()">
+                <select id="filtro-status-orcamento" onchange="renderizarOrcamentos()">
+                  <option value="">Todos os status</option>
+                  <option value="rascunho">Rascunho</option>
+                  <option value="enviado">Enviado</option>
+                  <option value="aprovado">Aprovado</option>
+                  <option value="rejeitado">Rejeitado</option>
+                </select>
+              </div>
+              <button class="btn btn-primario" onclick="abrirModalOrcamento()">+ Novo Orçamento</button>
             </div>
-            <button class="btn btn-primario" onclick="abrirModalOrcamento()">+ Novo Orçamento</button>
+            <!-- Linha 2: filtros de período -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--azul-claro2);border-radius:10px;border:1px solid var(--borda);">
+              <label style="font-size:12.5px;font-weight:600;color:var(--texto-suave);">Período:</label>
+              <select id="orc-filtro-ano" onchange="aplicarFiltroRapidoOrcamentos()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;"></select>
+              <select id="orc-filtro-mes" onchange="aplicarFiltroRapidoOrcamentos()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;">
+                <option value="">Todos os meses</option>
+                <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+                <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+                <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+                <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+              </select>
+              <span style="font-size:12px;color:var(--texto-suave);">ou</span>
+              <input type="date" id="orc-data-inicio" onchange="renderizarOrcamentos()" style="padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;">
+              <span style="font-size:12px;color:var(--texto-suave);">até</span>
+              <input type="date" id="orc-data-fim" onchange="renderizarOrcamentos()" style="padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;">
+              <button class="btn btn-sm btn-fantasma" onclick="limparFiltrosPeriodoOrc()" style="padding:6px 12px;font-size:12px;">✕ Limpar</button>
+              <span id="orc-periodo-badge" style="font-size:11.5px;font-weight:700;color:var(--azul);margin-left:auto;"></span>
+            </div>
           </div>
           <div class="tabela-wrap">
             <table>
               <thead><tr>
-                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Total</th><th>Status</th><th></th>
+                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Total</th><th>Status</th><th>Follow-up</th><th></th>
               </tr></thead>
               <tbody id="tbody-orcamentos"></tbody>
             </table>
@@ -581,17 +748,38 @@ tbody tr:hover{background:#FAFBFD;}
 
         <!-- ============================== PEDIDOS ============================== -->
         <section class="pagina" id="pagina-pedidos">
-          <div class="barra-acoes">
-            <div class="busca-filtros">
-              <input type="text" id="busca-pedidos" placeholder="Buscar por cliente..." oninput="renderizarPedidos()">
-              <select id="filtro-status-pedido" onchange="renderizarPedidos()">
-                <option value="">Todos os status</option>
-                <option value="pendente">Pendente</option>
-                <option value="producao">Em produção</option>
-                <option value="entrega">Em entrega</option>
-                <option value="concluido">Concluído</option>
-                <option value="cancelado">Cancelado</option>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+            <!-- Linha 1: busca + status -->
+            <div class="barra-acoes" style="margin-bottom:0;">
+              <div class="busca-filtros">
+                <input type="text" id="busca-pedidos" placeholder="Buscar por cliente..." oninput="renderizarPedidos()">
+                <select id="filtro-status-pedido" onchange="renderizarPedidos()">
+                  <option value="">Todos os status</option>
+                  <option value="pendente">Pendente</option>
+                  <option value="producao">Em produção</option>
+                  <option value="entrega">Em entrega</option>
+                  <option value="concluido">Concluído</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+            </div>
+            <!-- Linha 2: filtros de período -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--azul-claro2);border-radius:10px;border:1px solid var(--borda);">
+              <label style="font-size:12.5px;font-weight:600;color:var(--texto-suave);">Período:</label>
+              <select id="ped-filtro-ano" onchange="aplicarFiltroRapidoPedidos()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;"></select>
+              <select id="ped-filtro-mes" onchange="aplicarFiltroRapidoPedidos()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;">
+                <option value="">Todos os meses</option>
+                <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+                <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+                <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+                <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
               </select>
+              <span style="font-size:12px;color:var(--texto-suave);">ou</span>
+              <input type="date" id="ped-data-inicio" onchange="renderizarPedidos()" style="padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;">
+              <span style="font-size:12px;color:var(--texto-suave);">até</span>
+              <input type="date" id="ped-data-fim" onchange="renderizarPedidos()" style="padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;">
+              <button class="btn btn-sm btn-fantasma" onclick="limparFiltrosPeriodoPed()" style="padding:6px 12px;font-size:12px;">✕ Limpar</button>
+              <span id="ped-periodo-badge" style="font-size:11.5px;font-weight:700;color:var(--azul);margin-left:auto;"></span>
             </div>
           </div>
           <div class="tabela-wrap">
@@ -613,11 +801,22 @@ tbody tr:hover{background:#FAFBFD;}
           <div class="tabela-wrap">
             <table>
               <thead><tr>
-                <th>Nome</th><th>E-mail</th><th>Perfil</th><th>Meta diária</th><th>Status</th><th></th>
+                <th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th></th>
               </tr></thead>
               <tbody id="tbody-usuarios"></tbody>
             </table>
           </div>
+        </section>
+
+        <!-- ============================== PERMISSÕES ============================== -->
+        <section class="pagina" id="pagina-permissoes">
+          <div class="barra-acoes" style="margin-bottom:18px;">
+            <div>
+              <p style="margin:0;font-size:13px;color:var(--texto-suave);">Defina quais páginas cada vendedor pode acessar. Vendedores sempre veem apenas seus próprios dados.</p>
+            </div>
+            <button class="btn btn-primario" onclick="salvarPermissoes()">💾 Salvar Permissões</button>
+          </div>
+          <div id="lista-permissoes-vendedores" style="display:flex;flex-direction:column;gap:14px;"></div>
         </section>
 
         <!-- CADASTROS (origem do lead, tipo de pintura, cor, espessura, tipo de isopor) -->
@@ -893,7 +1092,6 @@ tbody tr:hover{background:#FAFBFD;}
           </select>
         </div>
       </div>
-      <div class="campo"><label>Meta diária de vendas (R$)</label><input type="number" step="0.01" min="0" id="usuario-meta-diaria" placeholder="Ex: 5000.00"></div>
     </div>
     <div class="rodape-modal">
       <button class="btn btn-fantasma" onclick="fecharModal('modal-usuario')">Cancelar</button>
@@ -903,6 +1101,53 @@ tbody tr:hover{background:#FAFBFD;}
 </div>
 
 <div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- MODAL FOLLOW-UP -->
+<div class="overlay-modal" id="modal-followup">
+  <div class="caixa-modal" style="max-width:480px;">
+    <div class="cabecalho-modal">
+      <h2>📞 Follow-up</h2>
+      <button class="fechar-modal" onclick="fecharModal('modal-followup')">✕</button>
+    </div>
+    <div class="corpo-modal">
+      <input type="hidden" id="followup-ref-id">
+      <input type="hidden" id="followup-ref-tipo">
+      <div id="followup-ref-info" style="padding:10px 14px;background:var(--azul-claro);border-radius:9px;margin-bottom:16px;font-size:13px;font-weight:600;color:var(--azul-escuro);"></div>
+      <div class="campo">
+        <label>Tipo de contato *</label>
+        <select id="followup-tipo">
+          <option value="ligacao">📞 Ligação</option>
+          <option value="whatsapp">💬 WhatsApp</option>
+          <option value="email">✉️ E-mail</option>
+          <option value="visita">🤝 Visita</option>
+          <option value="outro">📝 Outro</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Data do contato *</label>
+        <input type="date" id="followup-data">
+      </div>
+      <div class="campo">
+        <label>Observações / resultado</label>
+        <textarea id="followup-obs" rows="3" placeholder="Ex: Cliente solicitou prazo até sexta, aguardar retorno..."></textarea>
+      </div>
+      <div class="campo">
+        <label>Próximo contato (agendar)</label>
+        <input type="date" id="followup-proximo">
+      </div>
+
+      <!-- Histórico de follow-ups deste registro -->
+      <div id="followup-historico-wrap" style="margin-top:14px;">
+        <p style="font-size:12.5px;font-weight:700;color:var(--texto-suave);margin:0 0 8px;">Histórico de contatos:</p>
+        <div id="followup-historico" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+    </div>
+    <div class="rodape-modal">
+      <button class="btn btn-fantasma" onclick="fecharModal('modal-followup')">Fechar</button>
+      <button class="btn btn-primario" onclick="salvarFollowUp()">💾 Registrar Contato</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* =====================================================================
@@ -931,6 +1176,8 @@ const ICONE_EDITAR = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none
 const ICONE_LIXEIRA = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
 const ICONE_PDF = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9 17v-4h1.5a1.5 1.5 0 0 1 0 3H9"/><path d="M13.2 17v-4h1.3"/><path d="M13.2 15h1"/></svg>';
 const ICONE_ENVIAR = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+const ICONE_FOLLOWUP = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 11.64 18a19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 3.18 2 2 0 0 1 4.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+const ICONE_REVERTER = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>';
 const ICONE_CHECK = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 const ICONE_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 
@@ -945,7 +1192,7 @@ let leadArrastando = null;
 const ITENS_NAV = [
   {id:'dashboard', rotulo:'Dashboard', descricao:'Visão geral do seu funil de vendas', icone:ICONE_HOME, perfis:['admin','gerente','vendedor']},
   {id:'analises', rotulo:'Análises', descricao:'Origem, cidade, pintura, cor, espessura e isopor', icone:ICONE_ANALISES, perfis:['admin','gerente']},
-  {id:'metas', rotulo:'Metas', descricao:'Meta diária x realizado por vendedor', icone:ICONE_METAS, perfis:['admin','gerente','vendedor']},
+  {id:'metas', rotulo:'Metas', descricao:'Acompanhe metas, vendas e orçamentos por período', icone:ICONE_METAS, perfis:['admin','gerente','vendedor']},
   {id:'funil', rotulo:'Funil de Vendas', descricao:'Acompanhe as oportunidades em cada etapa', icone:ICONE_FUNIL, perfis:['admin','gerente','vendedor']},
   {id:'clientes', rotulo:'Clientes', descricao:'Cadastro de clientes e contatos', icone:ICONE_CLIENTES, perfis:['admin','gerente','vendedor']},
   {id:'produtos', rotulo:'Produtos', descricao:'Catálogo de telhas e modelos', icone:ICONE_PRODUTOS, perfis:['admin','gerente','vendedor']},
@@ -954,6 +1201,7 @@ const ITENS_NAV = [
   {id:'cadastros', rotulo:'Cadastros', descricao:'Origem, pintura, cor, espessura e isopor', icone:ICONE_CADASTROS, perfis:['admin','gerente']},
   {id:'config-metas', rotulo:'Config. Metas', descricao:'Defina metas mensais e distribua por vendedor', icone:ICONE_METAS, perfis:['admin','gerente']},
   {id:'usuarios', rotulo:'Usuários', descricao:'Gestão de usuários e permissões', icone:ICONE_USUARIOS, perfis:['admin']},
+  {id:'permissoes', rotulo:'Permissões', descricao:'Controle de acesso e visibilidade por vendedor', icone:ICONE_USUARIOS, perfis:['admin']},
 ];
 const ETAPAS_FUNIL = [
   {id:'novo', rotulo:'Novo'}, {id:'qualificacao', rotulo:'Qualificação'}, {id:'proposta', rotulo:'Proposta'},
@@ -1000,8 +1248,22 @@ function nomeUsuario(id){ const u = estado.usuarios.find(u=>u.id===id); return u
 function abrirModal(id){ document.getElementById(id).classList.add('aberto'); }
 function fecharModal(id){ document.getElementById(id).classList.remove('aberto'); }
 function isAdmin(){ return estado.usuario.perfil==='admin'; }
+
+function podeEditarItem(item){
+  if(podeVerTudo()) return true;
+  return item && item.vendedor_id === estado.usuario.id;
+}
+
 function podeVerTudo(){ return estado.usuario.perfil==='admin' || estado.usuario.perfil==='gerente'; }
-function filtrarPorPermissao(lista){ return podeVerTudo() ? lista : lista.filter(item=>item.vendedor_id===estado.usuario.id); }
+function filtrarPorPermissao(lista){
+  if(podeVerTudo()) return lista;
+  const cfg = carregarPermissoesVendedor(estado.usuario.id);
+  if(cfg.verTodosClientes){
+    // Vê tudo, mas não pode editar o que não é dele (controlado nos botões)
+    return lista;
+  }
+  return lista.filter(item=>item.vendedor_id===estado.usuario.id || item.id===estado.usuario.id);
+}
 function popularSelectClientes(selectId, valorSelecionado){
   document.getElementById(selectId).innerHTML = '<option value="">Selecione...</option>' +
     estado.clientes.map(c=>`<option value="${c.id}" ${c.id===valorSelecionado?'selected':''}>${escapeHtml(c.nome)}</option>`).join('');
@@ -1114,24 +1376,32 @@ async function iniciarApp(){
    NAVEGAÇÃO
 ===================================================================== */
 function construirNavLateral(){
-  document.getElementById('nav-lateral').innerHTML = ITENS_NAV
-    .filter(it=>it.perfis.includes(estado.usuario.perfil))
-    .map(it=>`<button class="nav-item" id="nav-${it.id}" onclick="navegarPagina('${it.id}')">${it.icone}<span>${it.rotulo}</span></button>`)
-    .join('');
+  // Usa versão com permissões (definida na seção de permissões)
+  construirNavLateralComPermissoes();
 }
 function navegarPagina(pagina){
+  // Verifica permissão para vendedores
+  if(!podeVerTudo() && !['dashboard'].includes(pagina)){
+    if(!vendedorPodeVerPagina(estado.usuario.id, pagina)){
+      notif('Você não tem permissão para acessar esta página.','erro');
+      return;
+    }
+  }
   estado.paginaAtual = pagina;
   document.querySelectorAll('.pagina').forEach(p=>p.classList.remove('ativa'));
-  document.getElementById('pagina-'+pagina).classList.add('ativa');
+  const paginaEl = document.getElementById('pagina-'+pagina);
+  if(!paginaEl){ return; }
+  paginaEl.classList.add('ativa');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('ativo'));
   const navAtivo = document.getElementById('nav-'+pagina);
   if(navAtivo) navAtivo.classList.add('ativo');
   const item = ITENS_NAV.find(i=>i.id===pagina);
+  if(!item) return;
   document.getElementById('titulo-pagina').textContent = item.rotulo;
   document.getElementById('desc-pagina').textContent = item.descricao;
   if(pagina==='dashboard') renderizarDashboard();
   if(pagina==='analises') renderizarAnalises();
-  if(pagina==='metas') renderizarMetas();
+  if(pagina==='metas'){ inicializarFiltroAnoMetas(); renderizarMetas(); }
   if(pagina==='funil') renderizarFunil();
   if(pagina==='clientes') renderizarClientes();
   if(pagina==='produtos') renderizarProdutos();
@@ -1139,6 +1409,7 @@ function navegarPagina(pagina){
   if(pagina==='pedidos') renderizarPedidos();
   if(pagina==='cadastros') renderizarCadastros();
   if(pagina==='usuarios') renderizarUsuarios();
+  if(pagina==='permissoes') renderizarPermissoes();
   if(pagina==='config-metas') renderizarConfigMetas();
 }
 async function atualizarEdRenderizar(){ await carregarDadosIniciais(); navegarPagina(estado.paginaAtual); }
@@ -1180,6 +1451,116 @@ async function carregarDadosIniciais(){
 /* =====================================================================
    DASHBOARD
 ===================================================================== */
+
+/* =====================================================================
+   RELÓGIOS DE META — Dashboard
+===================================================================== */
+function svgGauge(pct, cor, tamanho=110){
+  const r = tamanho/2 - 10;
+  const cx = tamanho/2, cy = tamanho/2;
+  const circ = 2*Math.PI*r;
+  const progress = Math.min(pct/100, 1);
+  const dashArr = circ;
+  const dashOff = circ * (1 - progress);
+
+  // Cor dinâmica
+  let corFill = cor;
+  if(!cor){
+    if(pct >= 100) corFill = '#1F9D55';
+    else if(pct >= 70) corFill = '#2F5DA0';
+    else if(pct >= 40) corFill = '#E0A526';
+    else corFill = '#D6453F';
+  }
+
+  const pctTextoTamanho = tamanho < 120 ? '18' : '22';
+  return `<svg width="${tamanho}" height="${tamanho}" viewBox="0 0 ${tamanho} ${tamanho}">
+    <!-- Fundo circular -->
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#E8EDF4" stroke-width="10"/>
+    <!-- Progresso -->
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none"
+      stroke="${corFill}" stroke-width="10" stroke-linecap="round"
+      stroke-dasharray="${dashArr}" stroke-dashoffset="${dashOff}"
+      transform="rotate(-90 ${cx} ${cy})"
+      style="transition:stroke-dashoffset .6s ease;"/>
+    <!-- Texto central -->
+    <text x="${cx}" y="${cy+3}" text-anchor="middle" dominant-baseline="middle"
+      font-family="Inter,sans-serif" font-size="${pctTextoTamanho}" font-weight="800"
+      fill="${corFill}">${pct}%</text>
+  </svg>`;
+}
+
+function renderizarRelogiosMeta(){
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth()+1;
+  const cfgAnual = (() => { try{ const r=localStorage.getItem('cfg_metas_ano_'+ano); return r?JSON.parse(r):{}; }catch(e){return {};} })();
+  const cfgMes = cfgAnual[mes] || {};
+  const diasUteis = cfgMes._diasUteis || 0;
+  const metaTotalMes = cfgMes._metaTotal || 0;
+
+  // Orçamentos aprovados no mês atual
+  const orcMes = estado.orcamentos.filter(o=>{
+    if(o.status!=='aprovado' || !o.data_orcamento) return false;
+    const [a,m] = o.data_orcamento.split('-');
+    return Number(a)===ano && Number(m)===mes;
+  });
+
+  // Vendedores configurados nas metas (ou ativos do sistema)
+  const rows = cfgMes._rows || estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo).map(u=>({id:u.id, nome:u.nome}));
+
+  // Total realizado global (apenas vendedores do funil de metas)
+  const realizadoGlobal = orcMes.reduce((s,o)=>s+Number(o.total||0),0);
+  const pctGlobal = metaTotalMes>0 ? Math.round((realizadoGlobal/metaTotalMes)*100) : 0;
+
+  const badgeEl = document.getElementById('badge-periodo-relogios');
+  if(badgeEl) badgeEl.textContent = `${hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}`;
+
+  const wrap = document.getElementById('grade-relogios-meta');
+  if(!wrap) return;
+
+  // Relógio global (apenas para admin/gerente)
+  let globalHtml = '';
+  if(podeVerTudo()){
+    globalHtml = `<div class="relogio-meta relogio-global">
+      <div class="rm-nome" style="font-size:13px;color:var(--azul-escuro);">🏢 Meta Global</div>
+      <div class="rm-svg">${svgGauge(pctGlobal, null, 130)}</div>
+      <div class="rm-valores">
+        <div class="rm-valor-real" style="font-size:13.5px;">${formatarMoeda(realizadoGlobal)}</div>
+        <div class="rm-valor-meta">de ${formatarMoeda(metaTotalMes)}</div>
+        ${metaTotalMes>realizadoGlobal ? `<div class="rm-pct" style="color:var(--vermelho);margin-top:2px;">Faltam ${formatarMoeda(metaTotalMes-realizadoGlobal)}</div>` : `<div class="rm-pct" style="color:var(--verde);margin-top:2px;">🎯 Meta atingida!</div>`}
+      </div>
+    </div>`;
+  }
+
+  // Relógios por vendedor
+  let vendedoresHtml = '';
+  const rowsVisiveis = podeVerTudo()
+    ? rows
+    : rows.filter(r=>r.id===estado.usuario.id);
+
+  vendedoresHtml = rowsVisiveis.map(r=>{
+    const metaVend = cfgMes[r.id]?._val || 0;
+    const realizadoVend = orcMes.filter(o=>o.vendedor_id===r.id).reduce((s,o)=>s+Number(o.total||0),0);
+    const pctVend = metaVend>0 ? Math.round((realizadoVend/metaVend)*100) : 0;
+    const nomeExib = r.nome || '—';
+    return `<div class="relogio-meta">
+      <div class="rm-nome">${escapeHtml(nomeExib)}</div>
+      <div class="rm-svg">${svgGauge(pctVend, null, 110)}</div>
+      <div class="rm-valores">
+        <div class="rm-valor-real">${formatarMoeda(realizadoVend)}</div>
+        <div class="rm-valor-meta">de ${formatarMoeda(metaVend)}</div>
+        ${metaVend>realizadoVend ? `<div class="rm-pct" style="color:var(--vermelho);">Faltam ${formatarMoeda(metaVend-realizadoVend)}</div>` : metaVend>0 ? `<div class="rm-pct" style="color:var(--verde);">🎯 Atingida!</div>` : `<div class="rm-pct">Sem meta</div>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = globalHtml + vendedoresHtml;
+
+  // Esconde a seção se não houver metas configuradas
+  const secao = document.getElementById('secao-relogios-meta');
+  if(secao) secao.style.display = (metaTotalMes>0 || rows.length>0) ? 'block' : 'none';
+}
+
 function renderizarDashboard(){
   const listaLeads = filtrarPorPermissao(estado.leads);
   const listaPedidos = filtrarPorPermissao(estado.pedidos);
@@ -1200,6 +1581,8 @@ function renderizarDashboard(){
     <div class="cartao-kpi"><div class="rotulo">Em Negociação</div><div class="valor amarelo">${formatarMoeda(valorNegociacao)}</div></div>
     <div class="cartao-kpi"><div class="rotulo">Pedidos em Produção</div><div class="valor" style="color:var(--roxo)">${pedidosProducao}</div></div>
     <div class="cartao-kpi"><div class="rotulo">Faturamento do Mês</div><div class="valor verde">${formatarMoeda(faturamentoMes)}</div></div>`;
+
+  renderizarRelogiosMeta();
 
   document.getElementById('painel-vendedores').style.display = podeVerTudo() ? 'block' : 'none';
 
@@ -1281,6 +1664,146 @@ function desenharGrafico(idCanvas, tipo, rotulos, datasets){
 ===================================================================== */
 const PALETA_GRAFICOS = ['#2F5DA0','#1F9D55','#E0A526','#6655C8','#D6453F','#3E72B8','#5B9BD5','#8E7CC3','#E07B53','#4FA8A0','#C2860F','#9DB4DA'];
 const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+
+/* =====================================================================
+   FILTROS ANALÍTICOS — Análises (Ano+Mês ou Datas livres)
+===================================================================== */
+
+// Retorna { inicio, fim, anoFiltro, mesFiltro, modoData }
+// modoData = true se datas livres estão ativas
+function obterFiltroAnalitico(){
+  const anoEl = document.getElementById('filtro-ano-analises');
+  const mesEl = document.getElementById('filtro-mes-analises');
+  const inicioEl = document.getElementById('analises-data-inicio');
+  const fimEl    = document.getElementById('analises-data-fim');
+
+  const anoFiltro = anoEl ? Number(anoEl.value) : new Date().getFullYear();
+  const mesFiltro = mesEl ? Number(mesEl.value) : 0;
+  const inicio = inicioEl?.value || '';
+  const fim    = fimEl?.value    || '';
+
+  const modoData = !!(inicio || fim);
+
+  return { anoFiltro, mesFiltro, inicio, fim, modoData };
+}
+
+// Filtra lista por período (suporta datas livres OU ano+mês)
+function filtrarPorPeriodoAnalitico(lista, campoDat){
+  const { anoFiltro, mesFiltro, inicio, fim, modoData } = obterFiltroAnalitico();
+  return lista.filter(item=>{
+    const d = item[campoDat];
+    if(!d) return false;
+    if(modoData){
+      if(inicio && d < inicio) return false;
+      if(fim    && d > fim)    return false;
+      return true;
+    }
+    const [a,m] = d.split('-');
+    if(anoFiltro && Number(a) !== anoFiltro) return false;
+    if(mesFiltro && Number(m) !== mesFiltro) return false;
+    return true;
+  });
+}
+
+function aoMudarFiltroAnalitico(){
+  // Limpar datas livres ao mudar ano/mês
+  const el1 = document.getElementById('analises-data-inicio');
+  const el2 = document.getElementById('analises-data-fim');
+  if(el1) el1.value = '';
+  if(el2) el2.value = '';
+  renderizarAnalises();
+}
+
+function aoMudarDataAnalitica(){
+  // Limpar ano/mês ao usar datas livres
+  // (mantém o ano como referência mas ignora filtro por mês)
+  const mesEl = document.getElementById('filtro-mes-analises');
+  if(mesEl) mesEl.value = '';
+  renderizarAnalises();
+}
+
+function limparFiltrosAnaliticos(){
+  ['filtro-mes-analises'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['analises-data-inicio','analises-data-fim'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  renderizarAnalises();
+}
+
+// ---- Gráfico por categoria (pizza ou barras horizontais) ----
+// Quando mês específico está selecionado, mostra distribuição por categoria (não por mês)
+function contarPorCategoria(lista, obterChave){
+  const mapa = {};
+  lista.forEach(item=>{
+    const chave = obterChave(item);
+    if(!chave) return;
+    mapa[chave] = (mapa[chave]||0) + 1;
+  });
+  return mapa;
+}
+
+function desenharGraficoCategoriaPorMes(idCanvas, tituloId, itens, obterChave, labelCateg, obterMes, mesFiltro){
+  // Se mês específico → gráfico de rosca (distribuição por categoria)
+  // Se "todos os meses" → gráfico de barras agrupadas por mês
+  if(mesFiltro && mesFiltro > 0){
+    // modo: distribuição por categoria no mês
+    const canvas = document.getElementById(idCanvas);
+    if(!canvas) return;
+    if(graficos[idCanvas]) graficos[idCanvas].destroy();
+
+    const mapaCateg = contarPorCategoria(itens, obterChave);
+    const categorias = Object.keys(mapaCateg).sort((a,b)=>mapaCateg[b]-mapaCateg[a]);
+    const valores = categorias.map(c=>mapaCateg[c]);
+
+    if(tituloId){
+      const el = document.getElementById(tituloId);
+      const MESES_NOMES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      if(el) el.textContent = labelCateg + ' — ' + MESES_NOMES[mesFiltro];
+    }
+
+    if(!categorias.length){
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.font='13px Inter,sans-serif'; ctx.fillStyle='#9AA5B5'; ctx.textAlign='center';
+      ctx.fillText('Sem dados no período', canvas.width/2, 80);
+      return;
+    }
+
+    graficos[idCanvas] = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: categorias,
+        datasets: [{
+          data: valores,
+          backgroundColor: PALETA_GRAFICOS.slice(0, categorias.length),
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position:'right', labels:{ boxWidth:12, font:{size:11}, padding:8 } },
+          tooltip: { callbacks: { label: ctx => ctx.label+': '+ctx.parsed+' ítens' } },
+          datalabels: {
+            display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+            color:'#fff', font:{size:11,weight:'700'},
+            formatter:(v,ctx)=>{
+              const total=ctx.dataset.data.reduce((a,b)=>a+b,0);
+              return total>0 ? Math.round(v/total*100)+'%' : '';
+            }
+          }
+        }
+      }
+    });
+  } else {
+    // modo: barras por mês (comportamento original)
+    if(tituloId){
+      const el = document.getElementById(tituloId);
+      if(el) el.textContent = labelCateg + ' por Mês';
+    }
+    desenharGraficoBarraMensal(idCanvas, contarPorCategoriaMensal(itens, obterChave, obterMes));
+  }
+}
 
 // Preenche o select de anos com base nos dados existentes
 function preencherFiltroAno(){
@@ -1382,66 +1905,245 @@ function desenharGraficoBarraMensal(idCanvas, mapaCategorias){
   });
 }
 
+let _modoCidade = 'valor';
+function alternarModoCidade(modo){
+  _modoCidade = modo;
+  ['valor','qtd','preco'].forEach(m=>{
+    const btn = document.getElementById('btn-cidade-'+m);
+    if(!btn) return;
+    if(m === modo){
+      btn.style.background='var(--azul)'; btn.style.color='#fff'; btn.style.borderColor='var(--azul)';
+    } else {
+      btn.style.background='var(--azul-claro)'; btn.style.color='var(--azul)'; btn.style.borderColor='var(--borda)';
+    }
+  });
+  renderizarGraficoCidades();
+}
+
+function renderizarGraficoCidades(){
+  const wrap = document.getElementById('grafico-cidades-wrap');
+  if(!wrap) return;
+
+  // Usa filtro analítico unificado (suporta datas livres e ano/mês)
+  const orcAprovados = filtrarPorPeriodoAnalitico(
+    filtrarPorPermissao(estado.orcamentos).filter(o=>o.status==='aprovado' && !!o.data_orcamento),
+    'data_orcamento'
+  );
+
+  // Agrupa por cidade do cliente
+  const porCidade = {};
+  orcAprovados.forEach(o=>{
+    const cli = estado.clientes.find(c=>c.id===o.cliente_id);
+    const cidade = (cli && cli.cidade) ? cli.cidade : 'Sem cidade';
+    if(!porCidade[cidade]) porCidade[cidade] = { valor:0, qtd:0, precos:[] };
+    porCidade[cidade].valor += Number(o.total||0);
+    porCidade[cidade].qtd  += 1;
+    if(o.total>0) porCidade[cidade].precos.push(Number(o.total));
+  });
+
+  // Ordena pelo modo atual
+  const cidades = Object.entries(porCidade).map(([nome, d])=>({
+    nome,
+    valor: d.valor,
+    qtd: d.qtd,
+    precoMedio: d.precos.length ? d.precos.reduce((a,b)=>a+b,0)/d.precos.length : 0,
+  })).sort((a,b)=>{
+    if(_modoCidade==='valor') return b.valor - a.valor;
+    if(_modoCidade==='qtd')   return b.qtd   - a.qtd;
+    return b.precoMedio - a.precoMedio;
+  });
+
+  if(!cidades.length){
+    wrap.innerHTML = '<div class="vazio">Nenhuma venda aprovada no período.</div>';
+    return;
+  }
+
+  const CORES_BARRA = ['#C0392B','#E74C3C','#E67E22','#F39C12','#27AE60','#2980B9','#8E44AD','#16A085','#D35400','#2C3E50'];
+  const maxVal = Math.max(...cidades.map(c=>_modoCidade==='valor'?c.valor:_modoCidade==='qtd'?c.qtd:c.precoMedio), 1);
+
+  wrap.innerHTML = cidades.map((c, i)=>{
+    const val = _modoCidade==='valor' ? c.valor : _modoCidade==='qtd' ? c.qtd : c.precoMedio;
+    const pct = Math.max((val/maxVal)*100, 1);
+    const label = _modoCidade==='qtd' ? c.qtd + ' orc.' : formatarMoeda(val);
+    const cor = CORES_BARRA[i % CORES_BARRA.length];
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+      <div style="width:160px;min-width:140px;font-size:12.5px;font-weight:600;color:var(--texto);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(c.nome)}">${escapeHtml(c.nome)}</div>
+      <div style="flex:1;background:#F0F2F6;border-radius:4px;overflow:hidden;height:28px;position:relative;">
+        <div style="width:${pct}%;background:${cor};height:100%;border-radius:4px;transition:width .4s ease;display:flex;align-items:center;padding-left:8px;min-width:2px;"></div>
+        <span style="position:absolute;left:${pct>50?'8px':'calc('+pct+'% + 8px)'};top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:${pct>50?'#fff':cor};">${label}</span>
+      </div>
+      <div style="width:70px;font-size:11px;color:var(--texto-suave);text-align:left;">${c.qtd} orc.</div>
+    </div>`;
+  }).join('');
+}
+
+function renderizarGraficoPizzaOrigem(leadsFiltrados, orcamentosFiltrados, mapaClientes){
+  // Combina origens de leads + origens dos clientes dos orçamentos
+  const contagem = {};
+  leadsFiltrados.forEach(l=>{
+    const origem = l.origem || 'Sem origem';
+    contagem[origem] = (contagem[origem]||0) + 1;
+  });
+  // Também conta orçamentos aprovados por origem do lead associado
+  orcamentosFiltrados.filter(o=>o.status==='aprovado').forEach(o=>{
+    const leadAssoc = estado.leads.find(l=>l.cliente_id===o.cliente_id);
+    const origem = (leadAssoc && leadAssoc.origem) ? leadAssoc.origem : 'Direto/Orçamento';
+    contagem[origem] = (contagem[origem]||0) + 1;
+  });
+
+  const entradas = Object.entries(contagem).sort((a,b)=>b[1]-a[1]);
+  const rotulos = entradas.map(e=>e[0]);
+  const valores = entradas.map(e=>e[1]);
+  const CORES_PIZZA = ['#2F5DA0','#1F9D55','#E0A526','#D6453F','#6655C8','#38BDF8','#E07B53','#4FA8A0','#C2860F','#9DB4DA'];
+
+  if(graficos['grafico-pizza-origem']) { graficos['grafico-pizza-origem'].destroy(); delete graficos['grafico-pizza-origem']; }
+  const canvas = document.getElementById('grafico-pizza-origem');
+  if(!canvas) return;
+  if(!valores.length){ canvas.style.display='none'; return; }
+  canvas.style.display='block';
+
+  graficos['grafico-pizza-origem'] = new Chart(canvas, {
+    type: 'pie',
+    data: {
+      labels: rotulos,
+      datasets: [{ data: valores, backgroundColor: CORES_PIZZA.slice(0, rotulos.length), borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position:'right', labels:{ boxWidth:12, font:{size:12} } },
+        datalabels: {
+          display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+          color: '#fff', font:{size:11, weight:'700'},
+          formatter: (v, ctx) => {
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            return total>0 ? Math.round(v/total*100)+'%' : '';
+          }
+        }
+      }
+    }
+  });
+}
+
 function renderizarAnalises(){
   preencherFiltroAno();
-  const sel = document.getElementById('filtro-ano-analises');
-  const anoFiltro = sel ? Number(sel.value) : new Date().getFullYear();
+
+  const { anoFiltro, mesFiltro, inicio, fim, modoData } = obterFiltroAnalitico();
+
+  // Badge de período ativo
   const badge = document.getElementById('ano-selecionado-badge');
-  if(badge) badge.textContent = `Exibindo: ${anoFiltro}`;
+  if(badge){
+    const MESES_ABREV2 = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    if(modoData){
+      badge.textContent = (inicio ? formatarData(inicio) : '—') + ' → ' + (fim ? formatarData(fim) : 'hoje');
+    } else {
+      badge.textContent = 'Exibindo: ' + (mesFiltro ? MESES_ABREV2[mesFiltro]+' ' : '') + anoFiltro;
+    }
+  }
 
   const listaLeads = filtrarPorPermissao(estado.leads);
   const mapaClientes = {};
   estado.clientes.forEach(c=>{ mapaClientes[c.id]=c; });
 
-  // Filtra leads pelo ano selecionado
-  const leadsFiltrados = listaLeads.filter(l=>{
+  // Helper: filtra lead pelo período ativo
+  function leadNoPeriodo(l){
     if(!l.criado_em) return false;
-    return new Date(l.criado_em).getFullYear() === anoFiltro;
-  });
+    if(modoData){
+      const d = l.criado_em.slice(0,10);
+      if(inicio && d < inicio) return false;
+      if(fim    && d > fim)    return false;
+      return true;
+    }
+    const dt = new Date(l.criado_em);
+    if(dt.getFullYear() !== anoFiltro) return false;
+    if(mesFiltro && (dt.getMonth()+1) !== mesFiltro) return false;
+    return true;
+  }
 
+  const leadsFiltrados = listaLeads.filter(leadNoPeriodo);
   const obterMesLead = l => l.criado_em ? new Date(l.criado_em).getMonth() : null;
 
-  // Bloco 1: Leads por origem (mensal)
-  desenharGraficoBarraMensal('grafico-leads-origem',
-    contarPorCategoriaMensal(leadsFiltrados, l => l.origem || 'Sem origem', obterMesLead)
+  // Orçamentos filtrados pelo período (todos status)
+  const orcsFiltradosPeriodo = filtrarPorPeriodoAnalitico(
+    filtrarPorPermissao(estado.orcamentos), 'data_orcamento'
   );
 
-  // Bloco 1: Leads por cidade (mensal)
+  // Orçamentos aprovados filtrados
+  const orcAprovados = orcsFiltradosPeriodo.filter(o=>o.status==='aprovado');
+
+  // ---- Pizza de origem ----
+  renderizarGraficoPizzaOrigem(leadsFiltrados, orcsFiltradosPeriodo, mapaClientes);
+
+  // ---- Leads por origem mensal (ano completo, sem filtro mês para histórico) ----
+  const leadsAno = modoData
+    ? leadsFiltrados  // no modo data livre, usa os filtrados
+    : listaLeads.filter(l=>l.criado_em && new Date(l.criado_em).getFullYear()===anoFiltro);
+  desenharGraficoBarraMensal('grafico-leads-origem',
+    contarPorCategoriaMensal(leadsAno, l => l.origem || 'Sem origem', obterMesLead)
+  );
+
+  // ---- Leads por cidade mensal ----
   desenharGraficoBarraMensal('grafico-leads-cidade',
-    contarPorCategoriaMensal(leadsFiltrados, l => {
+    contarPorCategoriaMensal(leadsAno, l => {
       const c = mapaClientes[l.cliente_id];
       return c && c.cidade ? c.cidade : null;
     }, obterMesLead)
   );
 
-  // Bloco 2: itens de orçamento do ano selecionado
-  const orcamentosVisiveis = filtrarPorPermissao(estado.orcamentos).filter(o=>{
-    if(!o.data_orcamento) return false;
-    return Number(o.data_orcamento.split('-')[0]) === anoFiltro;
+  // ---- Gráfico cidades (barras horizontais — já usa obterFiltroAnalitico internamente) ----
+  renderizarGraficoCidades();
+
+  // ---- Preço médio por cidade ----
+  const porCidadePreco = {};
+  orcAprovados.forEach(o=>{
+    const cli = estado.clientes.find(c=>c.id===o.cliente_id);
+    const cidade = (cli&&cli.cidade)?cli.cidade:'Sem cidade';
+    if(!porCidadePreco[cidade]) porCidadePreco[cidade]={soma:0,qtd:0};
+    porCidadePreco[cidade].soma += Number(o.total||0);
+    porCidadePreco[cidade].qtd  += 1;
   });
-  const idsOrcamentosVisiveis = new Set(orcamentosVisiveis.map(o=>o.id));
-  const itensVisiveis = estado.itensOrcamento.filter(i=>idsOrcamentosVisiveis.has(i.orcamento_id));
+  const cidadesPreco = Object.entries(porCidadePreco)
+    .map(([n,d])=>({nome:n, preco:d.qtd>0?d.soma/d.qtd:0}))
+    .sort((a,b)=>b.preco-a.preco).slice(0,15);
 
-  // Obtém mês do item via data do orçamento pai
+  if(graficos['grafico-preco-medio-cidade']){ graficos['grafico-preco-medio-cidade'].destroy(); delete graficos['grafico-preco-medio-cidade']; }
+  const cvPreco = document.getElementById('grafico-preco-medio-cidade');
+  if(cvPreco && cidadesPreco.length){
+    graficos['grafico-preco-medio-cidade'] = new Chart(cvPreco, {
+      type:'bar',
+      data:{ labels: cidadesPreco.map(c=>c.nome), datasets:[{ label:'Preço médio (R$)', data: cidadesPreco.map(c=>c.preco), backgroundColor:'#6655C8', borderRadius:5 }] },
+      options:{ indexAxis:'y', responsive:true,
+        plugins:{ legend:{display:false}, datalabels:{ display:true, color:'#fff', font:{size:10,weight:'700'}, formatter:v=>formatarMoeda(v) } },
+        scales:{ x:{beginAtZero:true, ticks:{font:{size:10}, callback:v=>formatarMoeda(v)}}, y:{ticks:{font:{size:11}}} }
+      }
+    });
+  }
+
+  // ---- Itens de orçamento: modo mês vs modo histórico ----
+  // Modo mês/data → gráfico de rosca (distribuição por categoria no período)
+  // Modo ano todo → gráfico de barras por mês (histórico)
+  const idsOrcVisiveis = new Set(orcsFiltradosPeriodo.map(o=>o.id));
+  const itensVisiveis = estado.itensOrcamento.filter(i=>idsOrcVisiveis.has(i.orcamento_id));
+
   const mapaOrcData = {};
-  orcamentosVisiveis.forEach(o=>{ mapaOrcData[o.id] = o.data_orcamento; });
-  const obterMesItem = i => {
-    const data = mapaOrcData[i.orcamento_id];
-    return data ? Number(data.split('-')[1]) - 1 : null;
-  };
+  orcsFiltradosPeriodo.forEach(o=>{ mapaOrcData[o.id]=o.data_orcamento; });
+  const obterMesItem = i => { const d=mapaOrcData[i.orcamento_id]; return d?Number(d.split('-')[1])-1:null; };
 
-  desenharGraficoBarraMensal('grafico-itens-pintura',
-    contarPorCategoriaMensal(itensVisiveis, i => i.tipo_pintura_nome || null, obterMesItem)
-  );
-  desenharGraficoBarraMensal('grafico-itens-cor',
-    contarPorCategoriaMensal(itensVisiveis, i => i.cor_nome || null, obterMesItem)
-  );
-  desenharGraficoBarraMensal('grafico-itens-espessura',
-    contarPorCategoriaMensal(itensVisiveis, i => i.espessura_nome || null, obterMesItem)
-  );
-  desenharGraficoBarraMensal('grafico-itens-isopor',
-    contarPorCategoriaMensal(itensVisiveis, i => i.tipo_isopor_nome || null, obterMesItem)
-  );
+  // modoCategoria = true quando tem mês específico ou datas livres
+  const modoCategoria = mesFiltro > 0 || modoData;
+
+  // Atualiza descrição do bloco
+  const descEl = document.getElementById('desc-itens-vendendo');
+  if(descEl){
+    descEl.textContent = modoCategoria
+      ? 'Distribuição por categoria no período selecionado (gráfico de rosca).'
+      : 'Histórico mensal de itens agrupados por tipo (Jan–Dez).';
+  }
+
+  desenharGraficoCategoriaPorMes('grafico-itens-pintura',  'titulo-grafico-pintura',  itensVisiveis, i=>i.tipo_pintura_nome||null, 'Tipo de Pintura', obterMesItem, modoCategoria ? mesFiltro||1 : 0);
+  desenharGraficoCategoriaPorMes('grafico-itens-cor',      'titulo-grafico-cor',      itensVisiveis, i=>i.cor_nome||null,          'Cor',             obterMesItem, modoCategoria ? mesFiltro||1 : 0);
+  desenharGraficoCategoriaPorMes('grafico-itens-espessura','titulo-grafico-espessura',itensVisiveis, i=>i.espessura_nome||null,     'Espessura',       obterMesItem, modoCategoria ? mesFiltro||1 : 0);
+  desenharGraficoCategoriaPorMes('grafico-itens-isopor',   'titulo-grafico-isopor',   itensVisiveis, i=>i.tipo_isopor_nome||null,   'Tipo de Isopor',  obterMesItem, modoCategoria ? mesFiltro||1 : 0);
 }
 
 /* =====================================================================
@@ -1519,6 +2221,76 @@ function preencherFiltroVendedorMetas(){
     vendedores.map(v=>`<option value="${v.id}" ${v.id===atual?'selected':''}>${escapeHtml(v.nome)}</option>`).join('');
 }
 
+function inicializarFiltroAnoMetas(){
+  const selAno = document.getElementById('metas-filtro-ano');
+  if(!selAno || selAno.options.length > 1) return;
+  const hoje = new Date();
+  const anoAtual = hoje.getFullYear();
+  selAno.innerHTML = '';
+  for(let a = anoAtual - 2; a <= anoAtual + 1; a++){
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    if(a === anoAtual) opt.selected = true;
+    selAno.appendChild(opt);
+  }
+  // Pré-seleciona o mês atual
+  const selMes = document.getElementById('metas-filtro-mes');
+  if(selMes) selMes.value = String(hoje.getMonth()+1);
+}
+
+function aplicarFiltroRapidoMetas(){
+  const selAno = document.getElementById('metas-filtro-ano');
+  const selMes = document.getElementById('metas-filtro-mes');
+  if(!selAno) return;
+  const ano = Number(selAno.value);
+  const mes = selMes ? Number(selMes.value) : 0;
+  const hoje = new Date();
+
+  let inicio, fim;
+  if(mes > 0){
+    // Mês específico
+    inicio = `${ano}-${String(mes).padStart(2,'0')}-01`;
+    const ultimoDia = new Date(ano, mes, 0).getDate();
+    fim = `${ano}-${String(mes).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
+    // Se for mês atual, fim = hoje
+    if(ano === hoje.getFullYear() && mes === hoje.getMonth()+1){
+      fim = hoje.toISOString().slice(0,10);
+    }
+  } else {
+    // Ano inteiro
+    inicio = `${ano}-01-01`;
+    fim = ano === hoje.getFullYear() ? hoje.toISOString().slice(0,10) : `${ano}-12-31`;
+  }
+
+  const inputInicio = document.getElementById('metas-data-inicio');
+  const inputFim = document.getElementById('metas-data-fim');
+  if(inputInicio) inputInicio.value = inicio;
+  if(inputFim) inputFim.value = fim;
+  renderizarMetas();
+}
+
+function renderizarMetasKpiCards(totalMeta, totalVendido, totalOrcado, pctMeta){
+  const el = document.getElementById('metas-kpi-cards');
+  if(!el) return;
+
+  function kpiCard(rotulo, valor, cor, extra=''){
+    return `<div class="cartao-kpi">
+      <div class="rotulo">${rotulo}</div>
+      <div class="valor ${cor}">${valor}</div>
+      ${extra ? `<div style="font-size:11.5px;color:var(--texto-suave);margin-top:4px;">${extra}</div>` : ''}
+    </div>`;
+  }
+
+  const pctCor = pctMeta >= 100 ? 'verde' : (pctMeta >= 50 ? 'amarelo' : 'vermelho');
+  const falta = totalMeta > totalVendido ? totalMeta - totalVendido : 0;
+
+  el.innerHTML =
+    kpiCard('Meta do Período', formatarMoeda(totalMeta), 'azul') +
+    kpiCard('Vendido (Aprovado)', formatarMoeda(totalVendido), pctCor, falta > 0 ? `Faltam ${formatarMoeda(falta)}` : '🎯 Meta atingida!') +
+    kpiCard('Total Orçado', formatarMoeda(totalOrcado), '', 'Todos os orçamentos no período') +
+    kpiCard('% Meta Acumulada', pctMeta + '%', pctCor, `${formatarMoeda(totalVendido)} de ${formatarMoeda(totalMeta)}`);
+}
+
 function renderizarMetas(){
   preencherFiltroVendedorMetas();
   const { inicio, fim } = obterPeriodoMetas();
@@ -1529,20 +2301,19 @@ function renderizarMetas(){
   if(filtroVendedorId) vendedores = vendedores.filter(v=>v.id===filtroVendedorId);
 
   const orcamentosAprovados = filtrarPorPermissao(estado.orcamentos).filter(o=>o.status==='aprovado');
+  const todosOrcamentos = filtrarPorPermissao(estado.orcamentos);
 
-  // Para cada vendedor: calcular meta diária e acumulados
   const corpo = document.getElementById('tbody-metas-diarias');
 
   if(!vendedores.length){
     corpo.innerHTML = `<tr><td colspan="7"><div class="vazio">Nenhum vendedor encontrado para o período.</div></td></tr>`;
+    renderizarMetasKpiCards(0, 0, 0, 0);
     return;
   }
 
-  // Monta linhas com acumulado por vendedor selecionado (ou todos somados se nenhum filtro)
   const linhas = [];
 
   if(filtroVendedorId){
-    // Um vendedor: linha por dia com acumulado dele
     const v = vendedores[0];
     let metaAcum = 0, realAcum = 0;
     datas.forEach(data=>{
@@ -1555,7 +2326,6 @@ function renderizarMetas(){
       linhas.push({ data, meta, real, metaAcum, realAcum });
     });
   } else {
-    // Todos: soma todos os vendedores por dia
     let metaAcum = 0, realAcum = 0;
     datas.forEach(data=>{
       const meta = vendedores.reduce((s,v)=>s+metaDiariaVendedor(v.id, data),0);
@@ -1567,6 +2337,23 @@ function renderizarMetas(){
       linhas.push({ data, meta, real, metaAcum, realAcum });
     });
   }
+
+  // KPI cards
+  const totalMeta = linhas.length ? linhas[linhas.length-1].metaAcum : 0;
+  const totalVendido = linhas.length ? linhas[linhas.length-1].realAcum : 0;
+
+  // Total orçado no período (todos os status, pelo filtro de vendedor e data)
+  const totalOrcado = todosOrcamentos
+    .filter(o => {
+      const noperiodo = o.data_orcamento >= inicio && o.data_orcamento <= fim;
+      if(!noperiodo) return false;
+      if(filtroVendedorId) return o.vendedor_id === filtroVendedorId;
+      return vendedores.some(v=>v.id===o.vendedor_id);
+    })
+    .reduce((s,o)=>s+Number(o.total||0), 0);
+
+  const pctMeta = totalMeta > 0 ? Math.round((totalVendido/totalMeta)*100) : (totalVendido>0?100:0);
+  renderizarMetasKpiCards(totalMeta, totalVendido, totalOrcado, pctMeta);
 
   corpo.innerHTML = linhas.map(l=>{
     const pctDia  = l.meta>0  ? Math.round((l.real/l.meta)*100)         : (l.real>0?100:0);
@@ -1584,7 +2371,6 @@ function renderizarMetas(){
     </tr>`;
   }).join('');
 
-  // Gráfico acumulado
   const metaAcumSerie = linhas.map(l=>l.metaAcum);
   const realAcumSerie = linhas.map(l=>l.realAcum);
   const rotulosDatas  = linhas.map(l=>formatarData(l.data));
@@ -1653,10 +2439,7 @@ function renderizarConfigMetas(){
   } else {
     // Fallback: usa vendedores ativos do sistema
     const vendSistema = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo);
-    const pctPadrao = vendSistema.length ? parseFloat((100/vendSistema.length).toFixed(2)) : 0;
-    // Tenta carregar pcts de _pcts legado
-    const pctsSalvos = refMes ? (cfgAno[refMes]._pcts||{}) : {};
-    rows = vendSistema.map(v=>({ id:v.id, nome:v.nome, pct: pctsSalvos[v.id] !== undefined ? pctsSalvos[v.id] : pctPadrao }));
+    rows = vendSistema.map(v=>({ id:v.id, nome:v.nome }));
   }
 
   // Guarda no estado temporário para manipulação
@@ -1674,6 +2457,12 @@ function renderizarConfigMetas(){
     const diasUteis = cfgM._diasUteis || '';
     const isMesAtual = (m === hoje.getMonth()+1 && ano === hoje.getFullYear());
 
+    // Recupera valores individuais salvos para este mês
+    const rowsM = (estado._cfgRows || []).map((r, i) => {
+      const valSalvo = cfgM[r.id] ? cfgM[r.id]._val : 0;
+      return { ...r, _valMes: valSalvo };
+    });
+
     return `<div class="painel" style="padding:0;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:${isMesAtual?'var(--azul)':'var(--azul-claro)'};border-radius:14px 14px 0 0;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
@@ -1685,12 +2474,15 @@ function renderizarConfigMetas(){
       <div style="padding:14px 18px 16px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
           <div class="campo" style="margin:0;">
-            <label>Meta total do mês (R$)</label>
+            <label style="display:flex;align-items:center;gap:6px;">
+              Meta total do mês (R$)
+              <span style="font-size:10.5px;background:var(--azul-claro);color:var(--azul);padding:1px 7px;border-radius:6px;font-weight:700;">Calculado automaticamente</span>
+            </label>
             <input type="text" id="cfg-m${m}-total"
               value="${metaTotal ? formatarMoedaInput(metaTotal) : ''}"
-              placeholder="Ex: 1.000.000,00"
-              oninput="recalcularMes(${m})"
-              style="width:100%;padding:9px 12px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;">
+              placeholder="Soma dos vendedores"
+              readonly
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--borda);border-radius:9px;font-size:13.5px;background:#F8FAFC;color:var(--azul);font-weight:700;cursor:default;">
           </div>
           <div class="campo" style="margin:0;">
             <label>Dias úteis</label>
@@ -1705,11 +2497,31 @@ function renderizarConfigMetas(){
           <table style="font-size:12.5px;">
             <thead><tr>
               <th style="padding:8px 12px;">Vendedor</th>
-              <th style="padding:8px 12px;">%</th>
-              <th style="padding:8px 12px;">Meta Mensal</th>
+              <th style="padding:8px 12px;">Meta do Vendedor (R$)</th>
+              <th style="padding:8px 12px;">% do Total</th>
               <th style="padding:8px 12px;">Meta Diária</th>
             </tr></thead>
-            <tbody id="cfg-m${m}-tbody"></tbody>
+            <tbody id="cfg-m${m}-tbody">
+              ${rowsM.map((r,i)=>{
+                const valMensal = r._valMes || 0;
+                const diasU = parseInt(diasUteis)||0;
+                const valDiario = diasU > 0 && valMensal > 0 ? valMensal / diasU : 0;
+                const pct = metaTotal > 0 && valMensal > 0 ? (valMensal / metaTotal * 100) : 0;
+                const nomeExib = r.nome || '—';
+                return `<tr>
+                  <td style="padding:7px 12px;"><strong>${escapeHtml(nomeExib)}</strong></td>
+                  <td style="padding:7px 12px;">
+                    <input type="text" id="cfg-m${m}-val-${i}"
+                      value="${valMensal > 0 ? formatarMoedaInput(valMensal) : ''}"
+                      placeholder="0,00"
+                      oninput="recalcularMes(${m})"
+                      style="width:150px;padding:6px 9px;border:1.5px solid var(--borda);border-radius:7px;font-size:13px;text-align:right;font-weight:600;">
+                  </td>
+                  <td style="padding:7px 12px;color:var(--texto-suave);font-size:12px;" id="cfg-m${m}-pct-${i}">${pct > 0 ? pct.toFixed(1)+'%' : '—'}</td>
+                  <td style="padding:7px 12px;font-weight:700;color:var(--azul);" id="cfg-m${m}-diaria-${i}">${valDiario > 0 ? formatarMoeda(valDiario) : '—'}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
           </table>
         </div>
       </div>
@@ -1719,7 +2531,7 @@ function renderizarConfigMetas(){
   recalcularTodosMeses();
 }
 
-/* --- renderiza as linhas de vendedor no bloco de distribuição --- */
+/* --- renderiza as linhas de vendedor no bloco de gerenciamento --- */
 function renderizarLinhasVendedores(){
   const rows = estado._cfgRows || [];
   const vendSistema = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo);
@@ -1728,12 +2540,10 @@ function renderizarLinhasVendedores(){
   if(!el) return;
 
   el.innerHTML = rows.map((r, i)=>{
-    // Monta lista de opções: vendedores do sistema + nome livre
     const optsSistema = vendSistema.map(v=>`<option value="${v.id}" ${r.id===v.id?'selected':''}>${escapeHtml(v.nome)}</option>`).join('');
-    // Se o id não bate com nenhum do sistema, é um nome livre → mostramos input de texto
     const isLivre = r.id.startsWith('livre_');
 
-    return `<div style="display:grid;grid-template-columns:1fr 130px 44px;align-items:center;gap:10px;padding:10px 14px;background:var(--azul-claro2);border-radius:10px;border:1px solid var(--borda);" id="cfg-row-${i}">
+    return `<div style="display:grid;grid-template-columns:1fr 44px;align-items:center;gap:10px;padding:10px 14px;background:var(--azul-claro2);border-radius:10px;border:1px solid var(--borda);" id="cfg-row-${i}">
       <div>
         ${isLivre
           ? `<input type="text" value="${escapeHtml(r.nome)}" placeholder="Nome do vendedor"
@@ -1746,29 +2556,14 @@ function renderizarLinhasVendedores(){
              </select>`
         }
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <input type="number" min="0" max="100" step="0.01"
-          id="cfg-pct-row-${i}"
-          value="${Number(r.pct).toFixed(2)}"
-          oninput="cfgRowPct(${i}, this.value)"
-          style="width:78px;padding:7px 8px;border:1.5px solid var(--borda);border-radius:8px;font-size:13.5px;text-align:right;">
-        <span style="font-weight:700;color:var(--texto-suave);font-size:13px;">%</span>
-      </div>
       <button onclick="cfgRemoverVendedor(${i})" title="Remover"
         style="width:36px;height:36px;border-radius:8px;border:1px solid var(--borda);background:#fff;color:var(--vermelho);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;">✕</button>
     </div>`;
   }).join('');
 
-  atualizarBadgePct();
   recalcularTodosMeses();
 }
 
-function cfgRowPct(i, val){
-  if(!estado._cfgRows) return;
-  estado._cfgRows[i].pct = parseFloat(val)||0;
-  atualizarBadgePct();
-  recalcularTodosMeses();
-}
 function cfgRowNome(i, val){
   if(!estado._cfgRows) return;
   estado._cfgRows[i].nome = val;
@@ -1777,23 +2572,22 @@ function cfgRowNome(i, val){
 function cfgRowSelect(i, val){
   if(!estado._cfgRows) return;
   if(val === '__livre__'){
-    estado._cfgRows[i] = { id:'livre_'+Date.now(), nome:'', pct: estado._cfgRows[i].pct };
+    estado._cfgRows[i] = { id:'livre_'+Date.now(), nome:'' };
   } else {
     const v = estado.usuarios.find(u=>u.id===val);
-    if(v) estado._cfgRows[i] = { id:v.id, nome:v.nome, pct: estado._cfgRows[i].pct };
+    if(v) estado._cfgRows[i] = { id:v.id, nome:v.nome };
   }
   renderizarLinhasVendedores();
 }
 function cfgAdicionarVendedor(){
   if(!estado._cfgRows) estado._cfgRows = [];
   const vendSistema = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo);
-  // Sugere o primeiro vendedor ainda não adicionado, ou nome livre
   const usados = new Set(estado._cfgRows.map(r=>r.id));
   const disponiveis = vendSistema.filter(v=>!usados.has(v.id));
   if(disponiveis.length){
-    estado._cfgRows.push({ id:disponiveis[0].id, nome:disponiveis[0].nome, pct:0 });
+    estado._cfgRows.push({ id:disponiveis[0].id, nome:disponiveis[0].nome });
   } else {
-    estado._cfgRows.push({ id:'livre_'+Date.now(), nome:'', pct:0 });
+    estado._cfgRows.push({ id:'livre_'+Date.now(), nome:'' });
   }
   renderizarLinhasVendedores();
 }
@@ -1802,61 +2596,42 @@ function cfgRemoverVendedor(i){
   estado._cfgRows.splice(i,1);
   renderizarLinhasVendedores();
 }
-function cfgDistribuirIgual(){
-  if(!estado._cfgRows || !estado._cfgRows.length) return;
-  const n = estado._cfgRows.length;
-  const pct = parseFloat((100/n).toFixed(4));
-  // Ajuste fino: o último recebe o resto para fechar 100
-  let soma = 0;
-  estado._cfgRows.forEach((r,i)=>{
-    r.pct = i < n-1 ? pct : parseFloat((100 - soma).toFixed(4));
-    soma += pct;
-  });
-  renderizarLinhasVendedores();
-}
 
-function atualizarBadgePct(){
-  const rows = estado._cfgRows || [];
-  let total = 0;
-  rows.forEach((r,i)=>{
-    const el = document.getElementById('cfg-pct-row-'+i);
-    total += el ? parseFloat(el.value||0) : r.pct;
-  });
-  const badge = document.getElementById('cfg-total-pct-badge');
-  if(!badge) return;
-  const ok = Math.abs(total-100) < 0.1;
-  badge.textContent = `Total: ${total.toFixed(1)}%`;
-  badge.style.background = ok ? 'var(--verde-claro)' : (total>100 ? 'var(--vermelho-claro)' : 'var(--amarelo-claro)');
-  badge.style.color       = ok ? 'var(--verde)'       : (total>100 ? 'var(--vermelho)'       : '#A8770C');
-}
+
+
 
 function recalcularMes(m){
-  const metaTotal = parseMoedaBR(document.getElementById('cfg-m'+m+'-total')?.value||'');
-  const diasUteis = parseInt(document.getElementById('cfg-m'+m+'-dias')?.value)||0;
-  const metaDiariaEmp = diasUteis > 0 ? metaTotal / diasUteis : 0;
-
-  const elDiaria = document.getElementById('cfg-m'+m+'-diaria-emp');
-  if(elDiaria) elDiaria.textContent = metaTotal > 0 ? 'Meta diária: ' + formatarMoeda(metaDiariaEmp) : '';
-
   const rows = estado._cfgRows || [];
-  const tbody = document.getElementById('cfg-m'+m+'-tbody');
-  if(!tbody) return;
+  const diasUteis = parseInt(document.getElementById('cfg-m'+m+'-dias')?.value)||0;
 
-  tbody.innerHTML = rows.map((r,i)=>{
-    // Lê o % atual do input (pode ter sido editado sem salvar ainda)
-    const elPct = document.getElementById('cfg-pct-row-'+i);
-    const pct = elPct ? parseFloat(elPct.value||0) : r.pct;
-    const valMensal = metaTotal * (pct/100);
-    const valDiario = diasUteis > 0 ? valMensal / diasUteis : 0;
-    const cor = pct > 0 ? 'var(--azul)' : 'var(--texto-suave)';
-    const nomeExib = r.nome || '—';
-    return `<tr>
-      <td style="padding:7px 12px;"><strong>${escapeHtml(nomeExib)}</strong></td>
-      <td style="padding:7px 12px;color:${cor};font-weight:700;">${pct.toFixed(1)}%</td>
-      <td style="padding:7px 12px;">${formatarMoeda(valMensal)}</td>
-      <td style="padding:7px 12px;font-weight:700;color:var(--azul);">${formatarMoeda(valDiario)}</td>
-    </tr>`;
-  }).join('');
+  // Soma os valores individuais para gerar a meta total do mês
+  let metaTotal = 0;
+  rows.forEach((r,i)=>{
+    const elVal = document.getElementById('cfg-m'+m+'-val-'+i);
+    metaTotal += elVal ? parseMoedaBR(elVal.value||'') : 0;
+  });
+
+  // Atualiza o campo de meta total (somente leitura)
+  const elTotal = document.getElementById('cfg-m'+m+'-total');
+  if(elTotal) elTotal.value = metaTotal > 0 ? formatarMoedaInput(metaTotal) : '';
+
+  // Atualiza badge no cabeçalho do mês
+  const metaDiariaEmp = diasUteis > 0 && metaTotal > 0 ? metaTotal / diasUteis : 0;
+  const elDiaria = document.getElementById('cfg-m'+m+'-diaria-emp');
+  if(elDiaria) elDiaria.textContent = metaTotal > 0 ? 'Total: ' + formatarMoeda(metaTotal) + (metaDiariaEmp > 0 ? ' · Diária empresa: ' + formatarMoeda(metaDiariaEmp) : '') : '';
+
+  // Atualiza apenas % e meta diária de cada linha (sem re-renderizar os inputs)
+  rows.forEach((r,i)=>{
+    const elVal = document.getElementById('cfg-m'+m+'-val-'+i);
+    const valMensal = elVal ? parseMoedaBR(elVal.value||'') : 0;
+    const valDiario = diasUteis > 0 && valMensal > 0 ? valMensal / diasUteis : 0;
+    const pct = metaTotal > 0 && valMensal > 0 ? (valMensal / metaTotal * 100) : 0;
+
+    const elPct = document.getElementById('cfg-m'+m+'-pct-'+i);
+    const elDiariaV = document.getElementById('cfg-m'+m+'-diaria-'+i);
+    if(elPct) elPct.textContent = pct > 0 ? pct.toFixed(1)+'%' : '—';
+    if(elDiariaV) elDiariaV.textContent = valDiario > 0 ? formatarMoeda(valDiario) : '—';
+  });
 }
 
 function recalcularTodosMeses(){
@@ -1868,21 +2643,14 @@ function salvarConfigMetas(){
   if(!selAno) return;
   const ano = Number(selAno.value);
 
-  // Sincroniza pcts dos inputs para o estado
   const rows = estado._cfgRows || [];
+
+  // Sincroniza nomes livres dos inputs para o estado
   rows.forEach((r,i)=>{
-    const el = document.getElementById('cfg-pct-row-'+i);
-    if(el) r.pct = parseFloat(el.value||0);
     const elNome = document.getElementById('cfg-row-'+i)?.querySelector('input[type=text]');
     if(elNome) r.nome = elNome.value;
   });
 
-  // Valida %
-  const totalPct = rows.reduce((s,r)=>s+r.pct, 0);
-  if(Math.abs(totalPct-100) > 0.5){
-    notif('A soma dos % está em ' + totalPct.toFixed(1) + '%. Ajuste para 100%.','erro');
-    return;
-  }
   // Valida nomes
   for(const r of rows){
     if(!r.nome || !r.nome.trim()){ notif('Preencha o nome de todos os vendedores.','erro'); return; }
@@ -1892,21 +2660,34 @@ function salvarConfigMetas(){
   const cfgAno = {};
   let algumMesPreenchido = false;
   for(let m=1; m<=12; m++){
-    const metaTotal = parseMoedaBR(document.getElementById('cfg-m'+m+'-total')?.value||'');
     const diasUteis = parseInt(document.getElementById('cfg-m'+m+'-dias')?.value)||0;
+
+    // Lê os valores individuais de cada vendedor para o mês
+    let metaTotal = 0;
+    const porVendedor = {};
+    rows.forEach((r,i)=>{
+      const elVal = document.getElementById('cfg-m'+m+'-val-'+i);
+      const val = elVal ? parseMoedaBR(elVal.value||'') : 0;
+      metaTotal += val;
+      const metaDiaria = diasUteis > 0 && val > 0 ? val / diasUteis : 0;
+      porVendedor[r.id] = { _val: val, metaDiaria, nome: r.nome };
+    });
+
     if(!metaTotal && !diasUteis) continue;
     algumMesPreenchido = true;
-    const porVendedor = {};
+
+    // Calcula % de cada vendedor sobre o total do mês
     rows.forEach(r=>{
-      const val = metaTotal * (r.pct/100);
-      const metaDiaria = diasUteis > 0 ? val / diasUteis : 0;
-      porVendedor[r.id] = { _pct: r.pct, _val: val, metaDiaria, nome: r.nome };
+      if(porVendedor[r.id]){
+        porVendedor[r.id]._pct = metaTotal > 0 ? (porVendedor[r.id]._val / metaTotal * 100) : 0;
+      }
     });
+
     cfgAno[m] = { _metaTotal: metaTotal, _diasUteis: diasUteis, _rows: rows.map(r=>({...r})), ...porVendedor };
   }
 
   if(!algumMesPreenchido){
-    notif('Preencha a meta e os dias úteis de ao menos um mês.','erro');
+    notif('Preencha o valor de ao menos um vendedor em ao menos um mês.','erro');
     return;
   }
 
@@ -1927,18 +2708,425 @@ function salvarConfigMetas(){
   notif('Metas de ' + ano + ' salvas com sucesso!','sucesso');
 }
 
+
+/* =====================================================================
+   PDF — Tela de Metas (tabela diária + acumulados + KPIs)
+===================================================================== */
+function gerarPDFMetas(){
+  const linhas = document.querySelectorAll('#tbody-metas-diarias tr');
+  if(!linhas.length){
+    notif('Não há dados para exportar. Aplique um período e aguarde o carregamento.','erro');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'landscape' });
+
+  // ---- Cabeçalho ----
+  doc.setFillColor(47,93,160);
+  doc.rect(0,0,297,22,'F');
+  try{ doc.addImage(LOGO_DATA_URI,'PNG',8,3,14,14); }catch(e){}
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(14); doc.setFont(undefined,'bold');
+  doc.text('Eleve Telhas Metálicas · Relatório de Metas', 28,12);
+  doc.setFontSize(9); doc.setFont(undefined,'normal');
+  doc.text('Gerado em '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), 28,19);
+  doc.setTextColor(20,20,20);
+
+  // ---- Período e filtros ----
+  let y = 30;
+  const inicio = document.getElementById('metas-data-inicio')?.value || '';
+  const fim    = document.getElementById('metas-data-fim')?.value    || '';
+  const vendedorSel = document.getElementById('filtro-vendedor-metas');
+  const vendedorNome = vendedorSel?.options[vendedorSel.selectedIndex]?.text || 'Todos os vendedores';
+  const periodoStr = (inicio && fim) ? formatarData(inicio)+' a '+formatarData(fim) : (inicio ? 'A partir de '+formatarData(inicio) : fim ? 'Até '+formatarData(fim) : 'Período completo');
+
+  doc.setFontSize(10); doc.setFont(undefined,'bold');
+  doc.text('Período: ', 14, y);
+  doc.setFont(undefined,'normal');
+  doc.text(periodoStr, 38, y);
+  doc.setFont(undefined,'bold');
+  doc.text('Vendedor: ', 130, y);
+  doc.setFont(undefined,'normal');
+  doc.text(vendedorNome, 154, y);
+  y += 8;
+
+  // ---- KPI Cards (resumo) ----
+  const kpiCards = document.querySelectorAll('#metas-kpi-cards .cartao-kpi');
+  if(kpiCards.length){
+    doc.setFillColor(234,241,251);
+    doc.rect(14, y, 269, 18, 'F');
+    doc.setFontSize(8.5); doc.setFont(undefined,'bold');
+    const largCard = 269 / kpiCards.length;
+    kpiCards.forEach((card, i)=>{
+      const rotulo = card.querySelector('.rotulo')?.textContent || '';
+      const valor  = card.querySelector('.valor')?.textContent  || '';
+      const xBase  = 14 + i * largCard + 4;
+      doc.setTextColor(100,110,130);
+      doc.text(rotulo.slice(0,22), xBase, y+6);
+      doc.setTextColor(20,20,20);
+      doc.setFontSize(10);
+      doc.text(valor.slice(0,20), xBase, y+14);
+      doc.setFontSize(8.5);
+    });
+    doc.setTextColor(20,20,20);
+    y += 22;
+  }
+
+  // ---- Tabela de dados diários ----
+  const COLS = [
+    {label:'Data',         w:24, align:'left'},
+    {label:'Meta do Dia',  w:32, align:'right'},
+    {label:'Real. Dia',    w:32, align:'right'},
+    {label:'% Dia',        w:18, align:'center'},
+    {label:'Meta Acum.',   w:35, align:'right'},
+    {label:'Real. Acum.',  w:35, align:'right'},
+    {label:'% Acum.',      w:20, align:'center'},
+  ];
+  const TOTAL_W = COLS.reduce((s,c)=>s+c.w,0); // ~196
+  const X_START = 14;
+  const ROW_H = 7;
+
+  // Cabeçalho da tabela
+  doc.setFillColor(47,93,160);
+  doc.rect(X_START, y, TOTAL_W, 9, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(8.5); doc.setFont(undefined,'bold');
+  let xc = X_START + 2;
+  COLS.forEach(col=>{
+    if(col.align==='right')      doc.text(col.label, xc + col.w - 3, y+6, {align:'right'});
+    else if(col.align==='center') doc.text(col.label, xc + col.w/2, y+6, {align:'center'});
+    else                          doc.text(col.label, xc, y+6);
+    xc += col.w;
+  });
+  y += 9;
+  doc.setTextColor(20,20,20);
+  doc.setFont(undefined,'normal');
+
+  // Linhas de dados
+  const dadosLinhas = [];
+  linhas.forEach(tr=>{
+    const tds = tr.querySelectorAll('td');
+    if(tds.length >= 7){
+      dadosLinhas.push([
+        tds[0].textContent.trim(), // data
+        tds[1].textContent.trim(), // meta dia
+        tds[2].textContent.trim(), // real dia
+        tds[3].textContent.trim(), // % dia
+        tds[4].textContent.trim(), // meta acum
+        tds[5].textContent.trim(), // real acum
+        tds[6].textContent.trim(), // % acum
+      ]);
+    }
+  });
+
+  dadosLinhas.forEach((row, idx)=>{
+    if(y > 188){ // nova página
+      doc.addPage();
+      y = 14;
+      // Recabeçalho
+      doc.setFillColor(47,93,160);
+      doc.rect(X_START, y, TOTAL_W, 9, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(8.5); doc.setFont(undefined,'bold');
+      let xcc = X_START + 2;
+      COLS.forEach(col=>{
+        if(col.align==='right')      doc.text(col.label, xcc+col.w-3, y+6, {align:'right'});
+        else if(col.align==='center') doc.text(col.label, xcc+col.w/2, y+6, {align:'center'});
+        else                          doc.text(col.label, xcc, y+6);
+        xcc += col.w;
+      });
+      y += 9;
+      doc.setTextColor(20,20,20);
+      doc.setFont(undefined,'normal');
+    }
+
+    // Faixa zebrada
+    if(idx % 2 === 0){
+      doc.setFillColor(248,250,253);
+      doc.rect(X_START, y, TOTAL_W, ROW_H, 'F');
+    }
+
+    doc.setFontSize(8.5);
+    let xr = X_START + 2;
+    row.forEach((cell, ci)=>{
+      const col = COLS[ci];
+      const pctCel = ci === 3 || ci === 6; // colunas de %
+      if(pctCel){
+        const pval = parseInt(cell);
+        doc.setTextColor(pval >= 100 ? 31 : pval >= 50 ? 160 : 214, pval >= 100 ? 157 : pval >= 50 ? 80 : 69, pval >= 100 ? 85 : pval >= 50 ? 0 : 63);
+      } else {
+        doc.setTextColor(20,20,20);
+      }
+      const cellTxt = cell.replace('R$ ','R$ ').slice(0,22);
+      if(col.align==='right')       doc.text(cellTxt, xr+col.w-3, y+5, {align:'right'});
+      else if(col.align==='center') doc.text(cellTxt, xr+col.w/2, y+5, {align:'center'});
+      else                          doc.text(cellTxt, xr, y+5);
+      xr += col.w;
+    });
+    doc.setTextColor(20,20,20);
+
+    // Linha separadora
+    doc.setDrawColor(228,232,240);
+    doc.line(X_START, y+ROW_H, X_START+TOTAL_W, y+ROW_H);
+    y += ROW_H;
+  });
+
+  // Linha final de total
+  if(dadosLinhas.length){
+    const ult = dadosLinhas[dadosLinhas.length-1];
+    y += 2;
+    doc.setFillColor(47,93,160);
+    doc.rect(X_START, y, TOTAL_W, 9, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont(undefined,'bold'); doc.setFontSize(9);
+    doc.text('ACUMULADO FINAL', X_START+2, y+6);
+    doc.text(ult[4], X_START+2+24+32+32+18+2, y+6, {align:'left'}); // meta acum
+    doc.text(ult[5], X_START+2+24+32+32+18+35+2, y+6, {align:'left'}); // real acum
+    // % acum destacado
+    const pct = parseInt(ult[6]);
+    doc.setTextColor(255, pct>=100?255:pct>=50?200:100, pct>=100?100:pct>=50?80:100);
+    doc.text(ult[6], X_START+2+24+32+32+18+35+35+2, y+6);
+    doc.setTextColor(20,20,20);
+    y += 12;
+  }
+
+  // Rodapé
+  const totalPages = doc.getNumberOfPages();
+  for(let pg=1; pg<=totalPages; pg++){
+    doc.setPage(pg);
+    doc.setFontSize(8); doc.setTextColor(160,160,160); doc.setFont(undefined,'normal');
+    doc.text('Eleve CRM · Relatório de Metas · Página '+pg+' de '+totalPages, 14, 200);
+  }
+
+  // Salvar
+  const nomeArq = 'metas-'+((inicio||'').replace(/-/g,'')||'periodo')+'-a-'+((fim||'').replace(/-/g,'')||'hoje')+'.pdf';
+  doc.save(nomeArq);
+  notif('PDF de metas gerado com sucesso!','sucesso');
+}
+
 /* =====================================================================
    FUNIL (KANBAN)
 ===================================================================== */
-function renderizarFunil(){
-  const termo = (document.getElementById('busca-funil').value||'').toLowerCase();
+let _funilModo = 'qtd'; // 'qtd' ou 'val'
+function alternarFunilModo(modo){
+  _funilModo = modo;
+  document.getElementById('btn-funil-qtd').style.background = modo==='qtd' ? 'var(--azul)' : 'var(--azul-claro)';
+  document.getElementById('btn-funil-qtd').style.color = modo==='qtd' ? '#fff' : 'var(--azul)';
+  document.getElementById('btn-funil-val').style.background = modo==='val' ? 'var(--azul)' : 'var(--azul-claro)';
+  document.getElementById('btn-funil-val').style.color = modo==='val' ? '#fff' : 'var(--azul)';
+  renderizarFunilGrafico(document._leadsFunilAtual || []);
+}
+
+function popularSelectVendedorFunil(){
+  const sel = document.getElementById('filtro-vendedor-funil');
+  if(!sel) return;
+  const vendedores = filtrarPorPermissao(estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo));
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos os vendedores</option>' +
+    vendedores.map(v=>`<option value="${v.id}" ${v.id===atual?'selected':''}>${escapeHtml(v.nome)}</option>`).join('');
+}
+
+function renderizarFunilGrafico(leads){
+  const wrap = document.getElementById('funil-grafico-wrap');
+  const taxaEl = document.getElementById('funil-taxa');
+  if(!wrap) return;
+
+  // Cores por etapa
+  // Usa ETAPAS_FUNIL_EXIBICAO se disponível, senão fallback
+  const etapasRef = typeof ETAPAS_FUNIL_EXIBICAO !== 'undefined' ? ETAPAS_FUNIL_EXIBICAO : ETAPAS_FUNIL.map(e=>({...e, cor:'#94A3B8'}));
+  const etapasVisiveis = etapasRef.filter(e=>e.id!=='perdido');
+
+  const dadosEtapas = etapasVisiveis.map(e=>{
+    const itensE = leads.filter(i=>i.etapa===e.id);
+    const qtd = itensE.length;
+    // suporta tanto .valor (novo) quanto .valor_estimado (legado)
+    const val = itensE.reduce((s,i)=>s+Number(i.valor||i.valor_estimado||0),0);
+    return { id:e.id, rotulo:e.rotulo, qtd, val, cor:e.cor||'#94A3B8' };
+  });
+
+  const totalTopo = dadosEtapas.reduce((s,e)=>s+e.qtd, 0); // total de todos os itens (exceto perdido)
+  const totalGanho = dadosEtapas.find(e=>e.id==='ganho')?.qtd || 0;
+  const totalValGanho = dadosEtapas.find(e=>e.id==='ganho')?.val || 0;
+  const totalPerdido = leads.filter(i=>i.etapa==='perdido').length;
+  const taxaConv = totalTopo > 0 ? Math.round((totalGanho/totalTopo)*100) : 0;
+
+  const maxValor = _funilModo==='qtd'
+    ? Math.max(...dadosEtapas.map(e=>e.qtd), 1)
+    : Math.max(...dadosEtapas.map(e=>e.val), 1);
+
+  const alturaFaixa = 56;
+  const larguraTotal = 660;
+  const margemLat = 30;
+  const altTotal = dadosEtapas.length * alturaFaixa + 24;
+
+  // Forma real de funil: trapézios com topo mais largo que a base
+  // Cada faixa tem largura proporcional ao seu valor
+  const largMax = larguraTotal - margemLat * 2;
+
+  let svgRows = dadosEtapas.map((e, i)=>{
+    const valor = _funilModo==='qtd' ? e.qtd : e.val;
+    const pct = maxValor>0 ? valor/maxValor : 0;
+    const largCentro = Math.max(largMax * pct, 80);
+
+    // Para funil real: próxima faixa (menor)
+    const proximaEtapa = dadosEtapas[i+1];
+    const proximaValor = proximaEtapa ? (_funilModo==='qtd' ? proximaEtapa.qtd : proximaEtapa.val) : valor*0.6;
+    const proximaPct = maxValor>0 ? proximaValor/maxValor : 0;
+    const largBase = proximaEtapa ? Math.max(largMax * proximaPct, 80) : Math.max(largCentro*0.7, 60);
+
+    const xTopoEsq = (larguraTotal - largCentro) / 2;
+    const xTopoDir = xTopoEsq + largCentro;
+    const xBaseEsq = (larguraTotal - largBase) / 2;
+    const xBaseDir = xBaseEsq + largBase;
+    const y = i * alturaFaixa + 10;
+    const yBase = y + alturaFaixa - 2;
+
+    const pctRelTopo = totalTopo > 0 ? Math.round((e.qtd/totalTopo)*100) : 0;
+    const label = _funilModo==='qtd'
+      ? `${e.qtd} (${pctRelTopo}%)`
+      : `R$ ${e.val.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+
+    return `
+      <polygon points="${xTopoEsq},${y} ${xTopoDir},${y} ${xBaseDir},${yBase} ${xBaseEsq},${yBase}"
+        fill="${e.cor}" opacity="0.90"/>
+      <text x="${larguraTotal/2}" y="${y + (alturaFaixa-2)/2 + 1}" text-anchor="middle" dominant-baseline="middle"
+        font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#fff">${e.rotulo}: ${label}</text>`;
+  }).join('');
+
+  wrap.innerHTML = `<svg viewBox="0 0 ${larguraTotal} ${altTotal}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${larguraTotal}px;display:block;margin:0 auto;">${svgRows}</svg>`;
+
+  // Legenda colorida com todos (incluindo perdido)
+  const todasEtapasLegenda = etapasRef;
+  const legendaHtml = todasEtapasLegenda.map(e=>{
+    const itensE = leads.filter(i=>i.etapa===e.id);
+    const qtdE = itensE.length;
+    return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;">
+      <span style="width:12px;height:12px;border-radius:3px;background:${e.cor};display:inline-block;opacity:.9;"></span>
+      ${e.rotulo}${qtdE > 0 ? ` <span style="color:var(--texto-suave);font-weight:400;">(${qtdE})</span>` : ''}
+    </span>`;
+  }).join('');
+
+  const totalGeral = leads.length;
+  const perdidosStr = totalPerdido > 0 ? ` · <span style="color:var(--vermelho);">Perdidos: ${totalPerdido}</span>` : '';
+  const ganhoStr = totalValGanho > 0 ? ` · <span style="color:var(--verde);">Valor ganho: ${formatarMoeda(totalValGanho)}</span>` : '';
+  const totalStr = totalGeral > 0 ? `<span style="color:var(--texto-suave);">Total de itens: ${totalGeral}</span> · ` : '';
+
+  taxaEl.innerHTML = `
+    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">${legendaHtml}</div>
+    ${totalStr}Taxa de conversão: <span style="color:var(--verde);font-size:15px;font-weight:800;">${taxaConv}%</span>${ganhoStr}${perdidosStr}`;
+}
+
+// Converte orçamentos em itens do funil com etapa calculada
+function etapaDoOrcamento(orc){
+  if(orc.status === 'aprovado') return 'ganho';
+  if(orc.status === 'rejeitado') return 'perdido';
+  if(orc.status === 'enviado') return 'negociacao';
+  return 'proposta'; // rascunho
+}
+
+function obterItensFunil(filtroVendedor, filtroPeriodo){
+  const hoje = new Date();
+  let inicioFiltro = null, fimFiltro = null;
+  if(filtroPeriodo === 'mes'){
+    inicioFiltro = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0,10);
+    fimFiltro = hoje.toISOString().slice(0,10);
+  } else if(filtroPeriodo === 'trimestre'){
+    const mesInicio = Math.floor(hoje.getMonth()/3)*3;
+    inicioFiltro = new Date(hoje.getFullYear(), mesInicio, 1).toISOString().slice(0,10);
+    fimFiltro = hoje.toISOString().slice(0,10);
+  } else if(filtroPeriodo === 'ano'){
+    inicioFiltro = `${hoje.getFullYear()}-01-01`;
+    fimFiltro = hoje.toISOString().slice(0,10);
+  }
+
+  // Orçamentos → itens do funil
+  let orcs = filtrarPorPermissao(estado.orcamentos);
+  if(filtroVendedor) orcs = orcs.filter(o=>o.vendedor_id===filtroVendedor);
+  if(inicioFiltro) orcs = orcs.filter(o=>o.data_orcamento >= inicioFiltro && o.data_orcamento <= fimFiltro);
+
+  const itensOrc = orcs.map(o=>({
+    id: 'orc_' + o.id,
+    titulo: `Orç. #${o.numero} — ${nomeCliente(o.cliente_id)}`,
+    cliente: nomeCliente(o.cliente_id),
+    vendedor: nomeUsuario(o.vendedor_id),
+    vendedor_id: o.vendedor_id,
+    valor: Number(o.total||0),
+    etapa: etapaDoOrcamento(o),
+    tipo: 'orcamento',
+    data: o.data_orcamento,
+    status: o.status,
+    orcamento_id: o.id,
+  }));
+
+  // Leads SEM orçamento associado (evitar duplicidade)
+  const orcamentoClienteIds = new Set(orcs.map(o=>o.cliente_id));
   let leads = filtrarPorPermissao(estado.leads);
-  if(termo) leads = leads.filter(l => l.titulo.toLowerCase().includes(termo) || nomeCliente(l.cliente_id).toLowerCase().includes(termo));
-  document.getElementById('kanban-funil').innerHTML = ETAPAS_FUNIL.map(etapa=>{
-    const leadsEtapa = leads.filter(l=>l.etapa===etapa.id);
-    return `<div class="coluna-kanban" data-etapa="${etapa.id}" ondragover="permitirDrop(event)" ondrop="soltarLead(event,'${etapa.id}')" ondragleave="this.classList.remove('alvo-drag')">
-      <div class="titulo-coluna"><span class="txt">${etapa.rotulo}</span><span class="contagem">${leadsEtapa.length}</span></div>
-      <div class="cartoes-coluna">${leadsEtapa.length ? leadsEtapa.map(cartaoLeadHtml).join('') : '<div style="text-align:center;color:#9AA5B5;font-size:12px;padding:14px 4px;">Sem leads</div>'}</div>
+  if(filtroVendedor) leads = leads.filter(l=>l.vendedor_id===filtroVendedor);
+  if(inicioFiltro) leads = leads.filter(l=> !l.criado_em || l.criado_em.slice(0,10) >= inicioFiltro);
+
+  const itensLead = leads
+    .filter(l => !['ganho','perdido'].includes(l.etapa)) // ganho/perdido só por orçamento
+    .map(l=>({
+      id: 'lead_' + l.id,
+      titulo: l.titulo,
+      cliente: nomeCliente(l.cliente_id),
+      vendedor: nomeUsuario(l.vendedor_id),
+      vendedor_id: l.vendedor_id,
+      valor: Number(l.valor_estimado||0),
+      etapa: l.etapa,
+      tipo: 'lead',
+      data: l.criado_em ? l.criado_em.slice(0,10) : '',
+    }));
+
+  return [...itensOrc, ...itensLead];
+}
+
+const ETAPAS_FUNIL_EXIBICAO = [
+  {id:'novo',        rotulo:'Novo',        cor:'#6655C8'},
+  {id:'qualificacao',rotulo:'Qualificação',cor:'#E0842A'},
+  {id:'proposta',    rotulo:'Proposta',    cor:'#3B82F6'},
+  {id:'negociacao',  rotulo:'Negociação',  cor:'#F59E0B'},
+  {id:'ganho',       rotulo:'Ganho',       cor:'#1F9D55'},
+  {id:'perdido',     rotulo:'Perdido',     cor:'#D6453F'},
+];
+
+function renderizarFunil(){
+  popularSelectVendedorFunil();
+  const filtroVendedor = document.getElementById('filtro-vendedor-funil')?.value || '';
+  const filtroPeriodo  = document.getElementById('filtro-periodo-funil')?.value  || '';
+
+  const itens = obterItensFunil(filtroVendedor, filtroPeriodo);
+  document._leadsFunilAtual = itens;
+
+  renderizarFunilGrafico(itens);
+
+  // Kanban: cada coluna mostra seus cartões (somente leitura — clique abre modal)
+  document.getElementById('kanban-funil').innerHTML = ETAPAS_FUNIL_EXIBICAO.map(etapa=>{
+    const itensEtapa = itens.filter(i=>i.etapa===etapa.id);
+    const totalEtapa = itensEtapa.reduce((s,i)=>s+i.valor,0);
+    const corBorda = etapa.cor;
+    return `<div class="coluna-kanban" data-etapa="${etapa.id}">
+      <div class="titulo-coluna">
+        <span class="txt" style="color:${corBorda};">${etapa.rotulo}</span>
+        <span class="contagem">${itensEtapa.length}</span>
+      </div>
+      ${totalEtapa > 0 ? `<div style="text-align:center;font-size:11.5px;font-weight:700;color:${corBorda};padding:0 6px 8px;">${formatarMoeda(totalEtapa)}</div>` : ''}
+      <div class="cartoes-coluna">
+        ${itensEtapa.length ? itensEtapa.map(item=>`
+          <div class="cartao-lead" style="border-left-color:${corBorda};cursor:${item.tipo==='orcamento'?'pointer':'pointer'};"
+            onclick="${item.tipo==='orcamento' ? `abrirModalOrcamento('${item.orcamento_id}')` : `abrirModalLead('${item.id.replace('lead_','')}')` }">
+            <div class="titulo-lead">${escapeHtml(item.titulo)}</div>
+            <div class="cliente-lead">${escapeHtml(item.cliente)}</div>
+            <div class="rodape-lead">
+              <span class="valor-lead">${formatarMoeda(item.valor)}</span>
+              <span class="vendedor-lead" style="background:${item.tipo==='orcamento'?'var(--azul-claro)':'var(--verde-claro)'};color:${item.tipo==='orcamento'?'var(--azul-escuro)':'var(--verde)'};">
+                ${item.tipo==='orcamento'?'📄':'🎯'} ${escapeHtml(item.vendedor)}
+              </span>
+            </div>
+            ${item.data ? `<div style="font-size:11px;color:var(--texto-suave);margin-top:5px;">${formatarData(item.data)}</div>` : ''}
+          </div>`).join('') 
+          : '<div style="text-align:center;color:#9AA5B5;font-size:12px;padding:14px 4px;">Sem itens</div>'}
+      </div>
     </div>`;
   }).join('');
 }
@@ -2173,20 +3361,256 @@ async function excluirProduto(id){
   }catch(e){ notif('Erro ao excluir: '+e.message,'erro'); }
 }
 
+
+/* =====================================================================
+   FOLLOW-UP — registro de contatos por orçamento/lead
+   Armazenado em localStorage: 'eleve_followup_{tipo}_{id}'
+===================================================================== */
+function carregarFollowUps(tipo, id){
+  try{ const r=localStorage.getItem('eleve_followup_'+tipo+'_'+id); return r?JSON.parse(r):[]; }catch(e){return [];}
+}
+function salvarFollowUps(tipo, id, lista){
+  try{ localStorage.setItem('eleve_followup_'+tipo+'_'+id, JSON.stringify(lista)); }catch(e){}
+}
+
+const ROTULO_FOLLOWUP_TIPO = {ligacao:'📞 Ligação', whatsapp:'💬 WhatsApp', email:'✉️ E-mail', visita:'🤝 Visita', outro:'📝 Outro'};
+
+function abrirFollowUp(refId, refTipo){
+  document.getElementById('followup-ref-id').value = refId;
+  document.getElementById('followup-ref-tipo').value = refTipo;
+
+  // Info do registro
+  let infoTxt = '';
+  if(refTipo === 'orcamento'){
+    const o = estado.orcamentos.find(x=>x.id===refId);
+    if(o) infoTxt = `Orçamento #${o.numero} — ${nomeCliente(o.cliente_id)} — ${formatarMoeda(o.total)}`;
+  } else {
+    const l = estado.leads.find(x=>x.id===refId);
+    if(l) infoTxt = `Lead: ${l.titulo} — ${nomeCliente(l.cliente_id)}`;
+  }
+  document.getElementById('followup-ref-info').textContent = infoTxt;
+
+  // Data padrão = hoje
+  const hoje = new Date().toISOString().slice(0,10);
+  document.getElementById('followup-data').value = hoje;
+  document.getElementById('followup-obs').value = '';
+  document.getElementById('followup-proximo').value = '';
+  document.getElementById('followup-tipo').value = 'ligacao';
+
+  // Histórico
+  renderizarHistoricoFollowUp(refTipo, refId);
+
+  abrirModal('modal-followup');
+}
+
+function renderizarHistoricoFollowUp(tipo, id){
+  const lista = carregarFollowUps(tipo, id);
+  const el = document.getElementById('followup-historico');
+  if(!el) return;
+  if(!lista.length){
+    el.innerHTML = '<div style="font-size:12px;color:var(--texto-suave);text-align:center;padding:10px;">Nenhum contato registrado.</div>';
+    return;
+  }
+  el.innerHTML = [...lista].reverse().map(f=>`
+    <div style="padding:8px 12px;background:var(--fundo);border-radius:8px;border-left:3px solid var(--azul);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+        <span style="font-size:12px;font-weight:700;">${ROTULO_FOLLOWUP_TIPO[f.tipo]||f.tipo}</span>
+        <span style="font-size:11px;color:var(--texto-suave);">${formatarData(f.data)}</span>
+      </div>
+      ${f.obs?`<div style="font-size:12px;color:var(--texto);">${escapeHtml(f.obs)}</div>`:''}
+      ${f.proximo?`<div style="font-size:11px;color:var(--verde);margin-top:3px;">📅 Próximo: ${formatarData(f.proximo)}</div>`:''}
+      <div style="font-size:10.5px;color:var(--texto-suave);margin-top:2px;">por ${escapeHtml(f.autor||'—')}</div>
+    </div>`).join('');
+}
+
+function salvarFollowUp(){
+  const refId   = document.getElementById('followup-ref-id').value;
+  const refTipo = document.getElementById('followup-ref-tipo').value;
+  const tipo    = document.getElementById('followup-tipo').value;
+  const data    = document.getElementById('followup-data').value;
+  const obs     = document.getElementById('followup-obs').value.trim();
+  const proximo = document.getElementById('followup-proximo').value;
+
+  if(!data){ notif('Informe a data do contato.','erro'); return; }
+
+  const lista = carregarFollowUps(refTipo, refId);
+  lista.push({
+    tipo, data, obs, proximo,
+    autor: estado.usuario?.nome || '—',
+    criadoEm: new Date().toISOString()
+  });
+  salvarFollowUps(refTipo, refId, lista);
+
+  // Se houver próximo contato, mostra notificação de agendamento
+  if(proximo) notif('Follow-up registrado! Próximo: '+formatarData(proximo),'sucesso');
+  else notif('Follow-up registrado com sucesso!','sucesso');
+
+  renderizarHistoricoFollowUp(refTipo, refId);
+  document.getElementById('followup-obs').value = '';
+  document.getElementById('followup-proximo').value = '';
+}
+
+/* =====================================================================
+   REVERTER ORÇAMENTO — volta para rascunho
+===================================================================== */
+async function reverterOrcamento(id){
+  const o = estado.orcamentos.find(x=>x.id===id);
+  if(!o) return;
+  const statusAtual = ROTULO_STATUS_ORC[o.status] || o.status;
+  if(!confirm('Reverter o orçamento #'+o.numero+' de "'+statusAtual+'" para Rascunho?\nIsso permitirá edição e reenvio.')) return;
+  try{
+    await sb('orcamentos?id=eq.'+id, {metodo:'PATCH', corpo:{status:'rascunho'}, cabecalhos:{Prefer:'return=minimal'}});
+    notif('Orçamento revertido para Rascunho','sucesso');
+    await atualizarEdRenderizar();
+  }catch(e){ notif('Erro ao reverter: '+e.message,'erro'); }
+}
+
 /* =====================================================================
    ORÇAMENTOS
 ===================================================================== */
 function itensDoOrcamento(orcamentoId){ return estado.itensOrcamento.filter(i=>i.orcamento_id===orcamentoId); }
 function pedidoExisteParaOrcamento(orcamentoId){ return estado.pedidos.some(p=>p.orcamento_id===orcamentoId); }
+
+/* =====================================================================
+   FILTROS DE PERÍODO — Orçamentos e Pedidos
+===================================================================== */
+function _preencherSelectAno(selectId){
+  const sel = document.getElementById(selectId);
+  if(!sel || sel.options.length > 1) return;
+  const anoAtual = new Date().getFullYear();
+  sel.innerHTML = '<option value="">Todos os anos</option>';
+  for(let a = anoAtual - 2; a <= anoAtual + 1; a++){
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    if(a === anoAtual) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function _getPeriodoDatas(prefixo){
+  const inicio = document.getElementById(prefixo+'-data-inicio')?.value || '';
+  const fim    = document.getElementById(prefixo+'-data-fim')?.value    || '';
+  return { inicio, fim };
+}
+
+function _filtrarPorPeriodo(lista, campoDat, prefixo){
+  const anoEl = document.getElementById(prefixo+'-filtro-ano');
+  const mesEl = document.getElementById(prefixo+'-filtro-mes');
+  const ano = anoEl ? Number(anoEl.value) : 0;
+  const mes = mesEl ? Number(mesEl.value) : 0;
+  const { inicio, fim } = _getPeriodoDatas(prefixo);
+
+  // Se tiver datas livres, elas têm prioridade
+  if(inicio || fim){
+    return lista.filter(item=>{
+      const d = item[campoDat];
+      if(!d) return false;
+      if(inicio && d < inicio) return false;
+      if(fim   && d > fim)    return false;
+      return true;
+    });
+  }
+  // Filtro por ano+mês
+  if(ano){
+    return lista.filter(item=>{
+      const d = item[campoDat];
+      if(!d) return false;
+      const [a,m] = d.split('-');
+      if(Number(a) !== ano) return false;
+      if(mes && Number(m) !== mes) return false;
+      return true;
+    });
+  }
+  return lista; // sem filtro
+}
+
+function _atualizarBadgePeriodo(badgeId, prefixo){
+  const badge = document.getElementById(badgeId);
+  if(!badge) return;
+  const anoEl = document.getElementById(prefixo+'-filtro-ano');
+  const mesEl = document.getElementById(prefixo+'-filtro-mes');
+  const { inicio, fim } = _getPeriodoDatas(prefixo);
+  const NOMES = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  if(inicio || fim){
+    badge.textContent = (inicio ? formatarData(inicio) : '—') + ' → ' + (fim ? formatarData(fim) : '—');
+  } else {
+    const ano = anoEl ? anoEl.value : '';
+    const mes = mesEl ? Number(mesEl.value) : 0;
+    if(ano) badge.textContent = (mes ? NOMES[mes]+' ' : '') + ano;
+    else    badge.textContent = '';
+  }
+}
+
+// ---- ORÇAMENTOS ----
+function inicializarFiltrosOrc(){
+  _preencherSelectAno('orc-filtro-ano');
+}
+function aplicarFiltroRapidoOrcamentos(){
+  // Limpar datas livres ao usar ano/mês
+  const el1 = document.getElementById('orc-data-inicio');
+  const el2 = document.getElementById('orc-data-fim');
+  if(el1) el1.value = '';
+  if(el2) el2.value = '';
+  renderizarOrcamentos();
+}
+function limparFiltrosPeriodoOrc(){
+  ['orc-filtro-ano','orc-filtro-mes'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  ['orc-data-inicio','orc-data-fim'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  renderizarOrcamentos();
+}
+
+// ---- PEDIDOS ----
+function inicializarFiltrosPed(){
+  _preencherSelectAno('ped-filtro-ano');
+}
+function aplicarFiltroRapidoPedidos(){
+  const el1 = document.getElementById('ped-data-inicio');
+  const el2 = document.getElementById('ped-data-fim');
+  if(el1) el1.value = '';
+  if(el2) el2.value = '';
+  renderizarPedidos();
+}
+function limparFiltrosPeriodoPed(){
+  ['ped-filtro-ano','ped-filtro-mes'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  ['ped-data-inicio','ped-data-fim'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  renderizarPedidos();
+}
+
 function renderizarOrcamentos(){
+  inicializarFiltrosOrc();
   const termo = (document.getElementById('busca-orcamentos').value||'').toLowerCase();
   const statusFiltro = document.getElementById('filtro-status-orcamento').value;
   let lista = filtrarPorPermissao(estado.orcamentos);
   if(termo) lista = lista.filter(o=>nomeCliente(o.cliente_id).toLowerCase().includes(termo));
   if(statusFiltro) lista = lista.filter(o=>o.status===statusFiltro);
+  lista = _filtrarPorPeriodo(lista, 'data_orcamento', 'orc');
+  _atualizarBadgePeriodo('orc-periodo-badge', 'orc');
   const corpo = document.getElementById('tbody-orcamentos');
-  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="8"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
-  corpo.innerHTML = lista.map(o=>`<tr>
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="9"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
+  corpo.innerHTML = lista.map(o=>{
+    const followups = carregarFollowUps('orcamento', o.id);
+    const ultimoFu = followups.length ? followups[followups.length-1] : null;
+    const proxFu = ultimoFu && ultimoFu.proximo ? ultimoFu.proximo : null;
+    const hoje = new Date().toISOString().slice(0,10);
+    const fuAtrasado = proxFu && proxFu < hoje;
+    const fuHoje = proxFu && proxFu === hoje;
+    const fuBadge = proxFu
+      ? `<span title="Próx. contato: ${formatarData(proxFu)}" style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:${fuAtrasado?'var(--vermelho-claro)':fuHoje?'var(--amarelo-claro)':'var(--verde-claro)'};color:${fuAtrasado?'var(--vermelho)':fuHoje?'#A8770C':'var(--verde)'};">${fuAtrasado?'⚠️ Atrasado':fuHoje?'📅 Hoje':'✅ '+formatarData(proxFu)}</span>`
+      : followups.length ? `<span style="font-size:11px;color:var(--texto-suave);">${followups.length}x</span>` : '—';
+    return `<tr>
       <td>#${o.numero}</td>
       <td>${escapeHtml(nomeCliente(o.cliente_id))}</td>
       <td>${escapeHtml(nomeUsuario(o.vendedor_id))}</td>
@@ -2194,14 +3618,17 @@ function renderizarOrcamentos(){
       <td>${formatarData(o.validade)}</td>
       <td><strong>${formatarMoeda(o.total)}</strong></td>
       <td><span class="selo ${SELO_STATUS_ORC[o.status]}">${ROTULO_STATUS_ORC[o.status]}</span></td>
+      <td>${fuBadge}</td>
       <td><div class="acoes-linha">
         <button class="icone-btn" title="Gerar PDF" onclick="gerarPDFOrcamento('${o.id}')">${ICONE_PDF}</button>
         <button class="icone-btn" title="Editar" onclick="abrirModalOrcamento('${o.id}')">${ICONE_EDITAR}</button>
+        <button class="icone-btn followup" title="Follow-up: registrar contato" onclick="abrirFollowUp('${o.id}','orcamento')">${ICONE_FOLLOWUP}</button>
         ${o.status==='rascunho'?`<button class="icone-btn" title="Marcar como enviado" onclick="mudarStatusOrcamento('${o.id}','enviado')">${ICONE_ENVIAR}</button>`:''}
         ${o.status==='enviado'?`<button class="icone-btn" title="Aprovar" onclick="mudarStatusOrcamento('${o.id}','aprovado')">${ICONE_CHECK}</button><button class="icone-btn perigo" title="Rejeitar" onclick="mudarStatusOrcamento('${o.id}','rejeitado')">${ICONE_X}</button>`:''}
         ${o.status==='aprovado' && !pedidoExisteParaOrcamento(o.id) ? `<button class="icone-btn" title="Gerar pedido" onclick="gerarPedidoDeOrcamento('${o.id}')">${ICONE_PEDIDOS}</button>`:''}
+        ${['aprovado','rejeitado','enviado'].includes(o.status)?`<button class="icone-btn reverter" title="Reverter para rascunho" onclick="reverterOrcamento('${o.id}')">${ICONE_REVERTER}</button>`:''}
         ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="excluirOrcamento('${o.id}')">${ICONE_LIXEIRA}</button>`:''}
-      </div></td></tr>`).join('');
+      </div></td></tr>`; }).join('');
 }
 function abrirModalOrcamento(id){
   popularSelectClientes('orcamento-cliente');
@@ -2434,11 +3861,14 @@ function gerarPDFOrcamento(id){
    PEDIDOS
 ===================================================================== */
 function renderizarPedidos(){
+  inicializarFiltrosPed();
   const termo = (document.getElementById('busca-pedidos').value||'').toLowerCase();
   const statusFiltro = document.getElementById('filtro-status-pedido').value;
   let lista = filtrarPorPermissao(estado.pedidos);
   if(termo) lista = lista.filter(p=>nomeCliente(p.cliente_id).toLowerCase().includes(termo));
   if(statusFiltro) lista = lista.filter(p=>p.status===statusFiltro);
+  lista = _filtrarPorPeriodo(lista, 'data_pedido', 'ped');
+  _atualizarBadgePeriodo('ped-periodo-badge', 'ped');
   const corpo = document.getElementById('tbody-pedidos');
   if(!lista.length){ corpo.innerHTML = `<tr><td colspan="8"><div class="vazio">Nenhum pedido encontrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(p=>`<tr>
@@ -2486,17 +3916,155 @@ async function excluirPedido(id){
   }catch(e){ notif('Erro ao excluir: '+e.message,'erro'); }
 }
 
+
+/* =====================================================================
+   PERMISSÕES POR VENDEDOR
+   Armazenadas em localStorage: 'eleve_permissoes_{vendedorId}'
+   Estrutura: { paginas: ['funil','clientes',...], verTodosClientes: false }
+===================================================================== */
+const PAGINAS_DISPONIVEIS_VENDEDOR = [
+  {id:'dashboard',  rotulo:'Dashboard',       icone:'🏠'},
+  {id:'metas',      rotulo:'Metas',           icone:'🎯'},
+  {id:'funil',      rotulo:'Funil de Vendas', icone:'📊'},
+  {id:'clientes',   rotulo:'Clientes',        icone:'👥'},
+  {id:'produtos',   rotulo:'Produtos',        icone:'📦'},
+  {id:'orcamentos', rotulo:'Orçamentos',      icone:'📄'},
+  {id:'pedidos',    rotulo:'Pedidos',         icone:'🚚'},
+  {id:'analises',   rotulo:'Análises',        icone:'📈'},
+];
+
+function carregarPermissoesVendedor(vendedorId){
+  try{
+    const r = localStorage.getItem('eleve_permissoes_'+vendedorId);
+    if(r) return JSON.parse(r);
+  }catch(e){}
+  // Padrão: acesso às páginas básicas, ver apenas os próprios
+  return {
+    paginas: ['dashboard','metas','funil','clientes','produtos','orcamentos','pedidos'],
+    verTodosClientes: false,
+  };
+}
+
+function salvarPermissoesVendedor(vendedorId, cfg){
+  try{ localStorage.setItem('eleve_permissoes_'+vendedorId, JSON.stringify(cfg)); }catch(e){}
+}
+
+function obterPaginasVendedor(vendedorId){
+  if(podeVerTudo()) return PAGINAS_DISPONIVEIS_VENDEDOR.map(p=>p.id);
+  const cfg = carregarPermissoesVendedor(vendedorId);
+  return cfg.paginas || ['dashboard','metas','funil','clientes','produtos','orcamentos','pedidos'];
+}
+
+function vendedorPodeVerPagina(vendedorId, paginaId){
+  if(podeVerTudo()) return true;
+  const paginas = obterPaginasVendedor(vendedorId);
+  return paginas.includes(paginaId);
+}
+
+// Sobrescreve construirNavLateral para respeitar permissões do vendedor
+function construirNavLateralComPermissoes(){
+  const todasPaginas = ITENS_NAV.filter(it=>it.perfis.includes(estado.usuario.perfil));
+  const paginasPermitidas = podeVerTudo()
+    ? todasPaginas
+    : todasPaginas.filter(it=>vendedorPodeVerPagina(estado.usuario.id, it.id));
+
+  document.getElementById('nav-lateral').innerHTML = paginasPermitidas
+    .map(it=>`<button class="nav-item" id="nav-${it.id}" onclick="navegarPagina('${it.id}')">${it.icone}<span>${it.rotulo}</span></button>`)
+    .join('');
+}
+
+function renderizarPermissoes(){
+  const vendedores = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo);
+  const container = document.getElementById('lista-permissoes-vendedores');
+  if(!container) return;
+
+  if(!vendedores.length){
+    container.innerHTML = '<div class="vazio">Nenhum vendedor ativo cadastrado.</div>';
+    return;
+  }
+
+  container.innerHTML = vendedores.map(v=>{
+    const cfg = carregarPermissoesVendedor(v.id);
+    const paginasMarcadas = cfg.paginas || [];
+
+    const checkboxesPaginas = PAGINAS_DISPONIVEIS_VENDEDOR.map(p=>`
+      <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--fundo);border-radius:8px;cursor:pointer;border:1.5px solid ${paginasMarcadas.includes(p.id)?'var(--azul)':'var(--borda)'};transition:.15s;"
+        onclick="togglePermPagina('${v.id}','${p.id}',this)">
+        <input type="checkbox" id="perm-${v.id}-${p.id}" value="${p.id}"
+          ${paginasMarcadas.includes(p.id)?'checked':''}
+          style="width:16px;height:16px;accent-color:var(--azul);"
+          onchange="atualizarEstiloLabel(this)">
+        <span style="font-size:13px;">${p.icone} ${p.rotulo}</span>
+      </label>`).join('');
+
+    return `<div class="painel" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 20px;background:var(--azul-claro);border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="width:36px;height:36px;font-size:13px;">${v.nome.substring(0,2).toUpperCase()}</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">${escapeHtml(v.nome)}</div>
+            <div style="font-size:11.5px;color:var(--texto-suave);">${escapeHtml(v.email)} · Vendedor</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;cursor:pointer;">
+            <input type="checkbox" id="perm-${v.id}-todos-clientes"
+              ${cfg.verTodosClientes?'checked':''}
+              style="width:15px;height:15px;accent-color:var(--azul);">
+            Ver todos os clientes/leads
+          </label>
+        </div>
+      </div>
+      <div style="padding:16px 20px;">
+        <p style="margin:0 0 12px;font-size:12px;color:var(--texto-suave);">Páginas acessíveis para este vendedor:</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">
+          ${checkboxesPaginas}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePermPagina(vendedorId, paginaId, labelEl){
+  // Só atualiza visual — salvo no botão "Salvar"
+  const checkbox = labelEl.querySelector('input[type=checkbox]') || document.getElementById('perm-'+vendedorId+'-'+paginaId);
+  if(labelEl.tagName === 'LABEL'){
+    // Clique no label — o browser já alternará o checkbox; esperar o próximo frame
+    requestAnimationFrame(()=>{
+      labelEl.style.borderColor = checkbox.checked ? 'var(--azul)' : 'var(--borda)';
+    });
+  }
+}
+
+function atualizarEstiloLabel(checkbox){
+  const label = checkbox.closest('label');
+  if(label) label.style.borderColor = checkbox.checked ? 'var(--azul)' : 'var(--borda)';
+}
+
+function salvarPermissoes(){
+  const vendedores = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo);
+  vendedores.forEach(v=>{
+    const paginas = PAGINAS_DISPONIVEIS_VENDEDOR
+      .map(p=>p.id)
+      .filter(pid=>{ const el=document.getElementById('perm-'+v.id+'-'+pid); return el && el.checked; });
+    const verTodosClientes = (document.getElementById('perm-'+v.id+'-todos-clientes')?.checked) || false;
+    salvarPermissoesVendedor(v.id, { paginas, verTodosClientes });
+  });
+  notif('Permissões salvas com sucesso!','sucesso');
+  // Reconstrói nav se o usuário logado for vendedor (mudança afeta ele mesmo)
+  if(!podeVerTudo()) construirNavLateralComPermissoes();
+}
+
 /* =====================================================================
    USUÁRIOS
 ===================================================================== */
 function renderizarUsuarios(){
   const corpo = document.getElementById('tbody-usuarios');
-  if(!estado.usuarios.length){ corpo.innerHTML = `<tr><td colspan="6"><div class="vazio">Nenhum usuário cadastrado.</div></td></tr>`; return; }
+  if(!estado.usuarios.length){ corpo.innerHTML = `<tr><td colspan="5"><div class="vazio">Nenhum usuário cadastrado.</div></td></tr>`; return; }
   corpo.innerHTML = estado.usuarios.map(u=>`<tr>
       <td><strong>${escapeHtml(u.nome)}</strong></td>
       <td>${escapeHtml(u.email)}</td>
       <td><span class="selo selo-azul">${u.perfil}</span></td>
-      <td>${u.perfil==='vendedor'?formatarMoeda(u.meta_diaria||0):'—'}</td>
       <td>${u.ativo?'<span class="selo selo-verde">Ativo</span>':'<span class="selo selo-cinza">Inativo</span>'}</td>
       <td><div class="acoes-linha">
         <button class="icone-btn" title="Editar" onclick="abrirModalUsuario('${u.id}')">${ICONE_EDITAR}</button>
@@ -2513,12 +4081,10 @@ function abrirModalUsuario(id){
     document.getElementById('usuario-senha').value = u.senha||'';
     document.getElementById('usuario-perfil').value = u.perfil||'vendedor';
     document.getElementById('usuario-ativo').value = String(!!u.ativo);
-    document.getElementById('usuario-meta-diaria').value = u.meta_diaria||0;
   } else {
     ['usuario-id','usuario-nome','usuario-email','usuario-senha'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('usuario-perfil').value='vendedor';
     document.getElementById('usuario-ativo').value='true';
-    document.getElementById('usuario-meta-diaria').value='0';
   }
   abrirModal('modal-usuario');
 }
@@ -2528,7 +4094,7 @@ async function salvarUsuario(){
   const email = document.getElementById('usuario-email').value.trim();
   const senha = document.getElementById('usuario-senha').value;
   if(!nome || !email || !senha){ notif('Preencha nome, e-mail e senha.','erro'); return; }
-  const corpo = { nome, email, senha, perfil: document.getElementById('usuario-perfil').value, ativo: document.getElementById('usuario-ativo').value==='true', meta_diaria: Number(document.getElementById('usuario-meta-diaria').value)||0 };
+  const corpo = { nome, email, senha, perfil: document.getElementById('usuario-perfil').value, ativo: document.getElementById('usuario-ativo').value==='true' };
   try{
     if(id) await sb(`usuarios?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
     else await sb('usuarios', {metodo:'POST', corpo, cabecalhos:{Prefer:'return=minimal'}});
