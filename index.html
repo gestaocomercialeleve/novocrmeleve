@@ -1017,6 +1017,10 @@ tbody tr:hover{background:#FAFBFD;}
         <div class="campo"><label>Origem do lead</label><select id="orcamento-origem"><option value="">Selecione...</option></select></div>
       </div>
       <div class="linha-campos">
+        <div class="campo"><label>Cidade</label><select id="orcamento-cidade"><option value="">Selecione...</option></select></div>
+        <div class="campo"></div>
+      </div>
+      <div class="linha-campos">
         <div class="campo"><label>Vendedor</label><select id="orcamento-vendedor"></select></div>
         <div class="campo"><label>Data</label><input type="date" id="orcamento-data" onchange="atualizarValidadeAutomatica()"></div>
       </div>
@@ -1958,8 +1962,7 @@ function renderizarGraficoCidades(){
   // Agrupa por cidade do cliente
   const porCidade = {};
   orcAprovados.forEach(o=>{
-    const cli = estado.clientes.find(c=>c.id===o.cliente_id);
-    const cidade = (cli && cli.cidade) ? cli.cidade : 'Sem cidade';
+    const cidade = o.cidade || 'Sem cidade';
     if(!porCidade[cidade]) porCidade[cidade] = { valor:0, qtd:0, precos:[] };
     porCidade[cidade].valor += Number(o.total||0);
     porCidade[cidade].qtd  += 1;
@@ -2121,8 +2124,7 @@ function renderizarAnalises(){
   // ---- Preço médio por cidade ----
   const porCidadePreco = {};
   orcAprovados.forEach(o=>{
-    const cli = estado.clientes.find(c=>c.id===o.cliente_id);
-    const cidade = (cli&&cli.cidade)?cli.cidade:'Sem cidade';
+    const cidade = o.cidade || 'Sem cidade';
     if(!porCidadePreco[cidade]) porCidadePreco[cidade]={soma:0,qtd:0};
     porCidadePreco[cidade].soma += Number(o.total||0);
     porCidadePreco[cidade].qtd  += 1;
@@ -3668,6 +3670,7 @@ function atualizarValidadeAutomatica(){
 function abrirModalOrcamento(id){
   popularSelectVendedores('orcamento-vendedor');
   popularSelectOrigensLead('orcamento-origem');
+  popularSelectCidades('orcamento-cidade');
   document.getElementById('titulo-modal-orcamento').textContent = id ? 'Editar Orçamento' : 'Novo Orçamento';
   if(id){
     const o = estado.orcamentos.find(x=>x.id===id);
@@ -3676,6 +3679,7 @@ function abrirModalOrcamento(id){
     document.getElementById('orcamento-cliente-manual').value = o.cliente_nome_manual||'';
     document.getElementById('orcamento-codigo-sistema').value = o.codigo_sistema||'';
     document.getElementById('orcamento-origem').value = o.origem||'';
+    popularSelectCidades('orcamento-cidade', o.cidade||'');
     document.getElementById('orcamento-vendedor').value = o.vendedor_id||'';
     document.getElementById('orcamento-data').value = o.data_orcamento||'';
     document.getElementById('orcamento-validade').value = o.validade||'';
@@ -3777,6 +3781,7 @@ async function salvarOrcamento(){
     cliente_nome_manual: clienteNomeManual,
     codigo_sistema: document.getElementById('orcamento-codigo-sistema').value.trim() || null,
     origem: document.getElementById('orcamento-origem').value || null,
+    cidade: document.getElementById('orcamento-cidade').value || null,
     vendedor_id: document.getElementById('orcamento-vendedor').value || estado.usuario.id,
     data_orcamento: document.getElementById('orcamento-data').value || new Date().toISOString().slice(0,10),
     validade: document.getElementById('orcamento-validade').value || null,
@@ -3865,7 +3870,8 @@ function gerarPDFOrcamento(id){
   y += 6; doc.text(cliente.nome || '—', 14, y);
   if(cliente.telefone){ y+=5; doc.text('Telefone: '+cliente.telefone, 14, y); }
   if(cliente.email){ y+=5; doc.text('E-mail: '+cliente.email, 14, y); }
-  if(cliente.cidade){ y+=5; doc.text('Cidade: '+cliente.cidade+(cliente.estado?'/'+cliente.estado:''), 14, y); }
+  if(o.cidade){ y+=5; doc.text('Cidade: '+o.cidade, 14, y); }
+  else if(cliente.cidade){ y+=5; doc.text('Cidade: '+cliente.cidade+(cliente.estado?'/'+cliente.estado:''), 14, y); }
   if(o.codigo_sistema){ y+=5; doc.text('Código sistema: '+o.codigo_sistema, 14, y); }
   if(o.origem){ y+=5; doc.text('Origem: '+o.origem, 14, y); }
   doc.setFont(undefined,'bold');
