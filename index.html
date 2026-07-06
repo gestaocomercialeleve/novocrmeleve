@@ -198,6 +198,13 @@ tbody tr:hover{background:#FAFBFD;}
 .selo-amarelo{background:var(--amarelo-claro);color:#A8770C;}
 .selo-roxo{background:var(--roxo-claro);color:var(--roxo);}
 .selo-cinza{background:#EEF1F5;color:var(--texto-suave);}
+.select-status-inline{
+  display:inline-block;padding:4px 24px 4px 10px;border-radius:7px;border:none;
+  font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  background-repeat:no-repeat;background-position:right 6px center;background-size:10px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='3'><polyline points='6 9 12 15 18 9'/></svg>");
+}
 
 .acoes-linha{display:flex;gap:6px;}
 .icone-btn{
@@ -396,12 +403,29 @@ tbody tr:hover{background:#FAFBFD;}
 
         <!-- ============================== DASHBOARD ============================== -->
         <section class="pagina" id="pagina-dashboard">
+
+          <!-- Filtro Ano + Mês do Dashboard -->
+          <div style="padding:14px 18px;background:var(--azul-claro2);border-radius:12px;border:1px solid var(--borda);margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+              <span style="font-size:12px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.04em;">Período</span>
+              <select id="filtro-ano-dashboard" onchange="aoMudarFiltroDashboard()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;cursor:pointer;"></select>
+              <select id="filtro-mes-dashboard" onchange="aoMudarFiltroDashboard()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;cursor:pointer;">
+                <option value="">Todos os meses</option>
+                <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+                <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+                <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+                <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+              </select>
+              <div id="dashboard-periodo-badge" style="font-size:11.5px;font-weight:700;color:var(--azul);background:var(--azul-claro);padding:4px 12px;border-radius:20px;margin-left:auto;"></div>
+            </div>
+          </div>
+
           <div class="grade-kpi" id="grade-kpi"></div>
 
           <!-- Relógios de Meta -->
           <div class="secao-relogios painel" id="secao-relogios-meta" style="margin-bottom:22px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-              <h3 style="margin:0;font-size:14.5px;">🎯 Metas do Mês — Realizado vs Meta</h3>
+              <h3 style="margin:0;font-size:14.5px;">🎯 Metas do Período — Realizado vs Meta</h3>
               <span id="badge-periodo-relogios" style="font-size:11.5px;color:var(--texto-suave);background:var(--azul-claro);padding:4px 12px;border-radius:20px;font-weight:600;"></span>
             </div>
             <div class="grade-relogios" id="grade-relogios-meta"></div>
@@ -427,7 +451,14 @@ tbody tr:hover{background:#FAFBFD;}
               <canvas id="grafico-faturamento"></canvas>
             </div>
           </div>
+          <div class="grade-graficos" id="linha-graficos-3">
+            <div class="painel">
+              <h3>Motivos de Perda (orçamentos reprovados)</h3>
+              <canvas id="grafico-motivos-perda"></canvas>
+            </div>
+          </div>
         </section>
+
 
         <!-- ============================== ANÁLISES ============================== -->
         <section class="pagina" id="pagina-analises">
@@ -710,9 +741,9 @@ tbody tr:hover{background:#FAFBFD;}
                 <select id="filtro-status-orcamento" onchange="renderizarOrcamentos()">
                   <option value="">Todos os status</option>
                   <option value="rascunho">Rascunho</option>
-                  <option value="enviado">Enviado</option>
+                  <option value="aguardando_cliente">Aguardando Cliente</option>
+                  <option value="em_andamento">Em Andamento</option>
                   <option value="aprovado">Aprovado</option>
-                  <option value="rejeitado">Rejeitado</option>
                 </select>
               </div>
               <button class="btn btn-primario" onclick="abrirModalOrcamento()">+ Novo Orçamento</button>
@@ -742,6 +773,45 @@ tbody tr:hover{background:#FAFBFD;}
                 <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Total</th><th>Status</th><th>Follow-up</th><th></th>
               </tr></thead>
               <tbody id="tbody-orcamentos"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============================== ORÇAMENTOS REPROVADOS ============================== -->
+        <section class="pagina" id="pagina-orcamentos_reprovados">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+            <div class="barra-acoes" style="margin-bottom:0;">
+              <div class="busca-filtros">
+                <input type="text" id="busca-orcamentos-reprovados" placeholder="Buscar por cliente..." oninput="renderizarOrcamentosReprovados()">
+                <select id="filtro-motivo-orcamentos-reprovados" onchange="renderizarOrcamentosReprovados()">
+                  <option value="">Todos os motivos</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--azul-claro2);border-radius:10px;border:1px solid var(--borda);">
+              <label style="font-size:12.5px;font-weight:600;color:var(--texto-suave);">Período:</label>
+              <select id="orcrep-filtro-ano" onchange="aplicarFiltroRapidoOrcamentosReprovados()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;"></select>
+              <select id="orcrep-filtro-mes" onchange="aplicarFiltroRapidoOrcamentosReprovados()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;">
+                <option value="">Todos os meses</option>
+                <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+                <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+                <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+                <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+              </select>
+              <span style="font-size:12px;color:var(--texto-suave);">ou</span>
+              <input type="date" id="orcrep-data-inicio" onchange="renderizarOrcamentosReprovados()" style="padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;">
+              <span style="font-size:12px;color:var(--texto-suave);">até</span>
+              <input type="date" id="orcrep-data-fim" onchange="renderizarOrcamentosReprovados()" style="padding:7px 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;">
+              <button class="btn btn-sm btn-fantasma" onclick="limparFiltrosPeriodoOrcamentosReprovados()" style="padding:6px 12px;font-size:12px;">✕ Limpar</button>
+              <span id="orcrep-periodo-badge" style="font-size:11.5px;font-weight:700;color:var(--azul);margin-left:auto;"></span>
+            </div>
+          </div>
+          <div class="tabela-wrap">
+            <table>
+              <thead><tr>
+                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data Orçamento</th><th>Data Reprovação</th><th>Total</th><th>Motivo da Reprovação</th><th></th>
+              </tr></thead>
+              <tbody id="tbody-orcamentos-reprovados"></tbody>
             </table>
           </div>
         </section>
@@ -828,6 +898,7 @@ tbody tr:hover{background:#FAFBFD;}
             <button class="btn btn-sm btn-fantasma aba-cadastro-btn" data-aba="espessuras" onclick="trocarAbaCadastro('espessuras')">Espessuras</button>
             <button class="btn btn-sm btn-fantasma aba-cadastro-btn" data-aba="tipos_isopor" onclick="trocarAbaCadastro('tipos_isopor')">Tipo de Isopor</button>
             <button class="btn btn-sm btn-fantasma aba-cadastro-btn" data-aba="cidades" onclick="trocarAbaCadastro('cidades')">Cidades</button>
+            <button class="btn btn-sm btn-fantasma aba-cadastro-btn" data-aba="motivos_reprovacao" onclick="trocarAbaCadastro('motivos_reprovacao')">Motivos de Reprovação</button>
           </div>
           <div class="barra-acoes">
             <div class="busca-filtros"></div>
@@ -1018,7 +1089,25 @@ tbody tr:hover{background:#FAFBFD;}
       </div>
       <div class="linha-campos">
         <div class="campo"><label>Cidade</label><select id="orcamento-cidade"><option value="">Selecione...</option></select></div>
-        <div class="campo"></div>
+        <div class="campo"><label>Status</label>
+          <select id="orcamento-status" onfocus="this.dataset.anterior=this.value" onchange="onStatusOrcamentoChange()">
+            <option value="rascunho">Rascunho</option>
+            <option value="aguardando_cliente">Aguardando Cliente</option>
+            <option value="em_andamento">Em Andamento</option>
+            <option value="reprovado">Reprovado</option>
+            <option value="aprovado">Aprovado</option>
+          </select>
+        </div>
+      </div>
+      <div class="linha-campos" id="linha-motivo-reprovacao" style="display:none;">
+        <div class="campo" style="flex:1;">
+          <input type="hidden" id="orcamento-motivo-reprovacao">
+          <input type="hidden" id="orcamento-data-reprovacao">
+          <div id="resumo-reprovacao-orcamento" style="font-size:13px;background:var(--vermelho-claro);color:var(--vermelho);padding:10px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span id="resumo-reprovacao-texto">—</span>
+            <button type="button" class="btn btn-sm btn-fantasma" onclick="reabrirPopupReprovacaoModal()">Editar</button>
+          </div>
+        </div>
       </div>
       <div class="linha-campos">
         <div class="campo"><label>Vendedor</label><select id="orcamento-vendedor"></select></div>
@@ -1054,6 +1143,24 @@ tbody tr:hover{background:#FAFBFD;}
     <div class="rodape-modal">
       <button class="btn btn-fantasma" onclick="fecharModal('modal-orcamento')">Cancelar</button>
       <button class="btn btn-primario" onclick="salvarOrcamento()">Salvar Orçamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REPROVAR ORÇAMENTO (data + motivo apenas) -->
+<div class="overlay-modal" id="modal-reprovar-orcamento">
+  <div class="caixa-modal">
+    <div class="cabecalho-modal">
+      <h2>Reprovar Orçamento</h2>
+      <button class="fechar-modal" onclick="cancelarReprovacaoOrcamento()">✕</button>
+    </div>
+    <div class="corpo-modal">
+      <div class="campo"><label>Data da reprovação *</label><input type="date" id="reprovacao-data"></div>
+      <div class="campo"><label>Motivo da reprovação *</label><select id="reprovacao-motivo"><option value="">Selecione...</option></select></div>
+    </div>
+    <div class="rodape-modal">
+      <button class="btn btn-fantasma" onclick="cancelarReprovacaoOrcamento()">Cancelar</button>
+      <button class="btn btn-primario" onclick="confirmarReprovacaoOrcamento()">Confirmar Reprovação</button>
     </div>
   </div>
 </div>
@@ -1205,7 +1312,7 @@ const ICONE_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" str
 /* =====================================================================
    ESTADO GLOBAL
 ===================================================================== */
-let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], origensLead:[], tiposPintura:[], cores:[], espessuras:[], tiposIsopor:[], cidades:[], paginaAtual:'dashboard', configMetas:{} };
+let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], origensLead:[], tiposPintura:[], cores:[], espessuras:[], tiposIsopor:[], cidades:[], motivosReprovacao:[], paginaAtual:'dashboard', configMetas:{} };
 let graficos = {};
 let itensBuilder = [];
 let leadArrastando = null;
@@ -1218,6 +1325,7 @@ const ITENS_NAV = [
   {id:'clientes', rotulo:'Clientes', descricao:'Cadastro de clientes e contatos', icone:ICONE_CLIENTES, perfis:['admin','gerente','vendedor']},
   {id:'produtos', rotulo:'Produtos', descricao:'Catálogo de telhas e modelos', icone:ICONE_PRODUTOS, perfis:['admin','gerente','vendedor']},
   {id:'orcamentos', rotulo:'Orçamentos', descricao:'Monte, envie e acompanhe propostas', icone:ICONE_ORCAMENTOS, perfis:['admin','gerente','vendedor']},
+  {id:'orcamentos_reprovados', rotulo:'Orçamentos Reprovados', descricao:'Propostas reprovadas pelo cliente', icone:ICONE_X, perfis:['admin','gerente','vendedor']},
   {id:'pedidos', rotulo:'Pedidos', descricao:'Status de produção e entrega', icone:ICONE_PEDIDOS, perfis:['admin','gerente','vendedor']},
   {id:'cadastros', rotulo:'Cadastros', descricao:'Origem, pintura, cor, espessura e isopor', icone:ICONE_CADASTROS, perfis:['admin','gerente']},
   {id:'config-metas', rotulo:'Config. Metas', descricao:'Defina metas mensais e distribua por vendedor', icone:ICONE_METAS, perfis:['admin','gerente']},
@@ -1228,8 +1336,8 @@ const ETAPAS_FUNIL = [
   {id:'novo', rotulo:'Novo'}, {id:'qualificacao', rotulo:'Qualificação'}, {id:'proposta', rotulo:'Proposta'},
   {id:'negociacao', rotulo:'Negociação'}, {id:'ganho', rotulo:'Ganho'}, {id:'perdido', rotulo:'Perdido'}
 ];
-const ROTULO_STATUS_ORC = {rascunho:'Rascunho', enviado:'Enviado', aprovado:'Aprovado', rejeitado:'Rejeitado'};
-const SELO_STATUS_ORC = {rascunho:'selo-cinza', enviado:'selo-azul', aprovado:'selo-verde', rejeitado:'selo-vermelho'};
+const ROTULO_STATUS_ORC = {rascunho:'Rascunho', aguardando_cliente:'Aguardando Cliente', em_andamento:'Em Andamento', reprovado:'Reprovado', aprovado:'Aprovado'};
+const SELO_STATUS_ORC = {rascunho:'selo-cinza', aguardando_cliente:'selo-amarelo', em_andamento:'selo-azul', reprovado:'selo-vermelho', aprovado:'selo-verde'};
 const ROTULO_STATUS_PED = {pendente:'Pendente', producao:'Produção', entrega:'Entrega', concluido:'Concluído', cancelado:'Cancelado'};
 const SELO_STATUS_PED = {pendente:'selo-cinza', producao:'selo-amarelo', entrega:'selo-roxo', concluido:'selo-verde', cancelado:'selo-vermelho'};
 
@@ -1314,6 +1422,11 @@ function popularSelectCidades(selectId, valorSelecionado){
     opcoes += `<option value="${escapeHtml(valorSelecionado)}" selected>${escapeHtml(valorSelecionado)} (não cadastrada)</option>`;
   }
   document.getElementById(selectId).innerHTML = opcoes;
+}
+function popularSelectMotivosReprovacao(selectId, valorSelecionado){
+  const ativos = estado.motivosReprovacao.filter(m=>m.ativo);
+  document.getElementById(selectId).innerHTML = '<option value="">Selecione...</option>' +
+    ativos.map(m=>`<option value="${escapeHtml(m.nome)}" ${m.nome===valorSelecionado?'selected':''}>${escapeHtml(m.nome)}</option>`).join('');
 }
 
 /* =====================================================================
@@ -1435,6 +1548,7 @@ function navegarPagina(pagina){
   if(pagina==='clientes') renderizarClientes();
   if(pagina==='produtos') renderizarProdutos();
   if(pagina==='orcamentos') renderizarOrcamentos();
+  if(pagina==='orcamentos_reprovados') renderizarOrcamentosReprovados();
   if(pagina==='pedidos') renderizarPedidos();
   if(pagina==='cadastros') renderizarCadastros();
   if(pagina==='usuarios') renderizarUsuarios();
@@ -1447,7 +1561,7 @@ async function atualizarEdRenderizar(){ await carregarDadosIniciais(); navegarPa
    CARREGAMENTO DE DADOS
 ===================================================================== */
 async function carregarDadosIniciais(){
-  const [usuarios, clientes, produtos, leads, orcamentos, itens, pedidos, origensLead, tiposPintura, cores, espessuras, tiposIsopor, cidades] = await Promise.all([
+  const [usuarios, clientes, produtos, leads, orcamentos, itens, pedidos, origensLead, tiposPintura, cores, espessuras, tiposIsopor, cidades, motivosReprovacao] = await Promise.all([
     sb('usuarios?select=*&order=nome.asc'),
     sb('clientes?select=*&order=nome.asc'),
     sb('produtos?select=*&order=nome.asc'),
@@ -1461,6 +1575,7 @@ async function carregarDadosIniciais(){
     sb('espessuras?select=*&order=nome.asc'),
     sb('tipos_isopor?select=*&order=nome.asc'),
     sb('cidades?select=*&order=nome.asc'),
+    sb('motivos_reprovacao?select=*&order=nome.asc'),
   ]);
   estado.usuarios = usuarios || [];
   estado.clientes = clientes || [];
@@ -1475,6 +1590,7 @@ async function carregarDadosIniciais(){
   estado.espessuras = espessuras || [];
   estado.tiposIsopor = tiposIsopor || [];
   estado.cidades = cidades || [];
+  estado.motivosReprovacao = motivosReprovacao || [];
 }
 
 /* =====================================================================
@@ -1519,30 +1635,48 @@ function svgGauge(pct, cor, tamanho=110){
 }
 
 function renderizarRelogiosMeta(){
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = hoje.getMonth()+1;
+  const { anoFiltro, mesFiltro } = obterFiltroDashboard();
+  const ano = anoFiltro;
   const cfgAnual = (() => { try{ const r=localStorage.getItem('cfg_metas_ano_'+ano); return r?JSON.parse(r):{}; }catch(e){return {};} })();
-  const cfgMes = cfgAnual[mes] || {};
-  const diasUteis = cfgMes._diasUteis || 0;
-  const metaTotalMes = cfgMes._metaTotal || 0;
 
-  // Orçamentos aprovados no mês atual
+  let metaTotalMes = 0;
+  let rows = [];
+  const rowsPorId = {};
+
+  if(mesFiltro > 0){
+    const cfgMes = cfgAnual[mesFiltro] || {};
+    metaTotalMes = cfgMes._metaTotal || 0;
+    rows = cfgMes._rows || estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo).map(u=>({id:u.id, nome:u.nome}));
+    rows.forEach(r=>{ rowsPorId[r.id] = (cfgMes[r.id]?._val) || 0; });
+  } else {
+    // Todos os meses do ano: soma as metas mensais configuradas
+    for(let m=1;m<=12;m++){
+      const cfgMes = cfgAnual[m] || {};
+      metaTotalMes += cfgMes._metaTotal || 0;
+      (cfgMes._rows || []).forEach(r=>{
+        if(!rowsPorId[r.id]) { rows.push(r); rowsPorId[r.id]=0; }
+        rowsPorId[r.id] += (cfgMes[r.id]?._val) || 0;
+      });
+    }
+    if(!rows.length) rows = estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo).map(u=>({id:u.id, nome:u.nome}));
+  }
+
+  // Orçamentos aprovados no período selecionado
   const orcMes = estado.orcamentos.filter(o=>{
     if(o.status!=='aprovado' || !o.data_orcamento) return false;
     const [a,m] = o.data_orcamento.split('-');
-    return Number(a)===ano && Number(m)===mes;
+    if(Number(a)!==ano) return false;
+    if(mesFiltro>0 && Number(m)!==mesFiltro) return false;
+    return true;
   });
-
-  // Vendedores configurados nas metas (ou ativos do sistema)
-  const rows = cfgMes._rows || estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo).map(u=>({id:u.id, nome:u.nome}));
 
   // Total realizado global (apenas vendedores do funil de metas)
   const realizadoGlobal = orcMes.reduce((s,o)=>s+Number(o.total||0),0);
   const pctGlobal = metaTotalMes>0 ? Math.round((realizadoGlobal/metaTotalMes)*100) : 0;
 
   const badgeEl = document.getElementById('badge-periodo-relogios');
-  if(badgeEl) badgeEl.textContent = `${hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}`;
+  const MESES_NOMES_REL = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  if(badgeEl) badgeEl.textContent = mesFiltro>0 ? `${MESES_NOMES_REL[mesFiltro]} de ${ano}` : `Ano inteiro de ${ano}`;
 
   const wrap = document.getElementById('grade-relogios-meta');
   if(!wrap) return;
@@ -1568,7 +1702,7 @@ function renderizarRelogiosMeta(){
     : rows.filter(r=>r.id===estado.usuario.id);
 
   vendedoresHtml = rowsVisiveis.map(r=>{
-    const metaVend = cfgMes[r.id]?._val || 0;
+    const metaVend = rowsPorId[r.id] || 0;
     const realizadoVend = orcMes.filter(o=>o.vendedor_id===r.id).reduce((s,o)=>s+Number(o.total||0),0);
     const pctVend = metaVend>0 ? Math.round((realizadoVend/metaVend)*100) : 0;
     const nomeExib = r.nome || '—';
@@ -1590,26 +1724,61 @@ function renderizarRelogiosMeta(){
   if(secao) secao.style.display = (metaTotalMes>0 || rows.length>0) ? 'block' : 'none';
 }
 
+function obterFiltroDashboard(){
+  const anoEl = document.getElementById('filtro-ano-dashboard');
+  const mesEl = document.getElementById('filtro-mes-dashboard');
+  const anoFiltro = anoEl && anoEl.value ? Number(anoEl.value) : new Date().getFullYear();
+  const mesFiltro = mesEl ? Number(mesEl.value) : 0;
+  return { anoFiltro, mesFiltro };
+}
+function preencherFiltroAnoDashboard(){
+  const sel = document.getElementById('filtro-ano-dashboard');
+  if(!sel) return;
+  const anos = new Set();
+  const anoAtual = new Date().getFullYear();
+  (estado.leads||[]).forEach(l=>{ if(l.criado_em) anos.add(new Date(l.criado_em).getFullYear()); });
+  (estado.orcamentos||[]).forEach(o=>{ if(o.data_orcamento) anos.add(Number(o.data_orcamento.split('-')[0])); });
+  (estado.pedidos||[]).forEach(p=>{ if(p.data_pedido) anos.add(Number(p.data_pedido.split('-')[0])); });
+  anos.add(anoAtual);
+  const listaAnos = [...anos].sort((a,b)=>b-a);
+  const valorAtual = sel.value ? Number(sel.value) : anoAtual;
+  sel.innerHTML = listaAnos.map(a=>`<option value="${a}" ${a===valorAtual?'selected':''}>${a}</option>`).join('');
+}
+function aoMudarFiltroDashboard(){
+  renderizarDashboard();
+}
+function filtrarPorAnoMesDashboard(lista, campoData, anoFiltro, mesFiltro){
+  return lista.filter(item=>{
+    const d = item[campoData];
+    if(!d) return false;
+    const [a,m] = d.split('-');
+    if(anoFiltro && Number(a)!==anoFiltro) return false;
+    if(mesFiltro && Number(m)!==mesFiltro) return false;
+    return true;
+  });
+}
 function renderizarDashboard(){
-  const listaLeads = filtrarPorPermissao(estado.leads);
-  const listaPedidos = filtrarPorPermissao(estado.pedidos);
+  preencherFiltroAnoDashboard();
+  const { anoFiltro, mesFiltro } = obterFiltroDashboard();
+  const MESES_NOMES_DASH = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const badgeDash = document.getElementById('dashboard-periodo-badge');
+  if(badgeDash) badgeDash.textContent = 'Exibindo: ' + (mesFiltro ? MESES_NOMES_DASH[mesFiltro]+' de ' : 'Ano inteiro de ') + anoFiltro;
+
+  const listaLeads = filtrarPorAnoMesDashboard(filtrarPorPermissao(estado.leads), 'criado_em', anoFiltro, mesFiltro);
+  const listaPedidosPeriodo = filtrarPorAnoMesDashboard(filtrarPorPermissao(estado.pedidos), 'data_pedido', anoFiltro, mesFiltro);
+  const listaOrcamentosPeriodo = filtrarPorAnoMesDashboard(filtrarPorPermissao(estado.orcamentos), 'data_orcamento', anoFiltro, mesFiltro);
   const listaClientes = filtrarPorPermissao(estado.clientes);
   const leadsAbertos = listaLeads.filter(l=>!['ganho','perdido'].includes(l.etapa));
   const valorNegociacao = leadsAbertos.reduce((s,l)=>s+Number(l.valor_estimado||0),0);
-  const pedidosProducao = listaPedidos.filter(p=>p.status==='producao').length;
-  const hoje = new Date();
-  const faturamentoMes = listaPedidos.filter(p=>{
-    if(p.status!=='concluido' || !p.data_pedido) return false;
-    const [a,m] = p.data_pedido.split('-');
-    return Number(a)===hoje.getFullYear() && Number(m)===(hoje.getMonth()+1);
-  }).reduce((s,p)=>s+Number(p.valor_total||0),0);
+  const pedidosProducao = listaPedidosPeriodo.filter(p=>p.status==='producao').length;
+  const faturamentoPeriodo = listaPedidosPeriodo.filter(p=>p.status==='concluido').reduce((s,p)=>s+Number(p.valor_total||0),0);
 
   document.getElementById('grade-kpi').innerHTML = `
     <div class="cartao-kpi"><div class="rotulo">Clientes</div><div class="valor azul">${listaClientes.length}</div></div>
     <div class="cartao-kpi"><div class="rotulo">Leads Abertos</div><div class="valor azul">${leadsAbertos.length}</div></div>
     <div class="cartao-kpi"><div class="rotulo">Em Negociação</div><div class="valor amarelo">${formatarMoeda(valorNegociacao)}</div></div>
     <div class="cartao-kpi"><div class="rotulo">Pedidos em Produção</div><div class="valor" style="color:var(--roxo)">${pedidosProducao}</div></div>
-    <div class="cartao-kpi"><div class="rotulo">Faturamento do Mês</div><div class="valor verde">${formatarMoeda(faturamentoMes)}</div></div>`;
+    <div class="cartao-kpi"><div class="rotulo">Faturamento do Período</div><div class="valor verde">${formatarMoeda(faturamentoPeriodo)}</div></div>`;
 
   renderizarRelogiosMeta();
 
@@ -1621,25 +1790,42 @@ function renderizarDashboard(){
 
   const statusPedido = ['pendente','producao','entrega','concluido','cancelado'];
   desenharGrafico('grafico-pedidos-status','doughnut', statusPedido.map(s=>ROTULO_STATUS_PED[s]),
-    [{data: statusPedido.map(s=>listaPedidos.filter(p=>p.status===s).length), backgroundColor:['#94A3B8','#E0A526','#6655C8','#1F9D55','#D6453F']}]);
+    [{data: statusPedido.map(s=>listaPedidosPeriodo.filter(p=>p.status===s).length), backgroundColor:['#94A3B8','#E0A526','#6655C8','#1F9D55','#D6453F']}]);
 
   if(podeVerTudo()){
     const vendedores = estado.usuarios.filter(u=>u.ativo);
     desenharGrafico('grafico-vendedores','bar', vendedores.map(v=>v.nome),
-      [{label:'Total vendido', data: vendedores.map(v=>estado.pedidos.filter(p=>p.vendedor_id===v.id && p.status==='concluido').reduce((s,p)=>s+Number(p.valor_total||0),0)), backgroundColor:'#1F9D55', borderRadius:6}]);
+      [{label:'Total vendido', data: vendedores.map(v=>listaPedidosPeriodo.filter(p=>p.vendedor_id===v.id && p.status==='concluido').reduce((s,p)=>s+Number(p.valor_total||0),0)), backgroundColor:'#1F9D55', borderRadius:6}]);
   }
 
+  // Faturamento dos últimos 6 meses, terminando no período selecionado
+  const hoje = new Date();
+  const baseData = mesFiltro>0
+    ? new Date(anoFiltro, mesFiltro-1, 1)
+    : (anoFiltro===hoje.getFullYear() ? hoje : new Date(anoFiltro, 11, 1));
+  const listaPedidosTodos = filtrarPorPermissao(estado.pedidos);
   const meses = [], totaisMes = [];
   for(let i=5;i>=0;i--){
-    const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+    const d = new Date(baseData.getFullYear(), baseData.getMonth()-i, 1);
     meses.push(d.toLocaleDateString('pt-BR',{month:'short', year:'2-digit'}));
-    totaisMes.push(listaPedidos.filter(p=>{
+    totaisMes.push(listaPedidosTodos.filter(p=>{
       if(p.status!=='concluido' || !p.data_pedido) return false;
       const [a,m] = p.data_pedido.split('-');
       return Number(a)===d.getFullYear() && Number(m)===(d.getMonth()+1);
     }).reduce((s,p)=>s+Number(p.valor_total||0),0));
   }
   desenharGrafico('grafico-faturamento','line', meses, [{label:'Faturamento', data: totaisMes, borderColor:'#2F5DA0', backgroundColor:'rgba(47,93,160,.12)', fill:true, tension:.35}]);
+
+  // Motivos de perda (orçamentos reprovados no período selecionado)
+  const orcReprovados = listaOrcamentosPeriodo.filter(o=>o.status==='reprovado');
+  const contagemMotivos = {};
+  orcReprovados.forEach(o=>{
+    const motivo = o.motivo_reprovacao || 'Sem motivo informado';
+    contagemMotivos[motivo] = (contagemMotivos[motivo]||0) + 1;
+  });
+  const motivosOrdenados = Object.entries(contagemMotivos).sort((a,b)=>b[1]-a[1]);
+  desenharGrafico('grafico-motivos-perda','bar', motivosOrdenados.map(m=>m[0]),
+    [{label:'Orçamentos reprovados', data: motivosOrdenados.map(m=>m[1]), backgroundColor:'#D6453F', borderRadius:6}]);
 }
 // Registra o plugin datalabels globalmente (uma única vez)
 if(window.ChartDataLabels) Chart.register(ChartDataLabels);
@@ -3046,8 +3232,9 @@ function renderizarFunilGrafico(leads){
 // Converte orçamentos em itens do funil com etapa calculada
 function etapaDoOrcamento(orc){
   if(orc.status === 'aprovado') return 'ganho';
-  if(orc.status === 'rejeitado') return 'perdido';
-  if(orc.status === 'enviado') return 'negociacao';
+  if(orc.status === 'reprovado') return 'perdido';
+  if(orc.status === 'em_andamento') return 'negociacao';
+  if(orc.status === 'aguardando_cliente') return 'proposta';
   return 'proposta'; // rascunho
 }
 
@@ -3492,6 +3679,98 @@ async function reverterOrcamento(id){
   }catch(e){ notif('Erro ao reverter: '+e.message,'erro'); }
 }
 
+// Altera o status diretamente na listagem, sem precisar abrir o modal de edição.
+// Exceção: "Reprovado" abre uma caixa dedicada, só com Data e Motivo.
+async function mudarStatusOrcamentoInline(id, novoStatus, selectEl){
+  const o = estado.orcamentos.find(x=>x.id===id);
+  if(!o) return;
+  if(novoStatus === 'reprovado'){
+    abrirPopupReprovacao({tipo:'inline', orcamentoId:id, selectEl, statusAnterior:o.status});
+    return;
+  }
+  if(o.status === 'aprovado' && pedidoExisteParaOrcamento(id) && novoStatus !== 'aprovado'){
+    notif('Este orçamento já virou pedido. Reverta o pedido antes de mudar o status.','erro');
+    if(selectEl) selectEl.value = o.status;
+    return;
+  }
+  try{
+    await sb('orcamentos?id=eq.'+id, {metodo:'PATCH', corpo:{status:novoStatus}, cabecalhos:{Prefer:'return=minimal'}});
+    notif('Status atualizado para '+ROTULO_STATUS_ORC[novoStatus],'sucesso');
+    await atualizarEdRenderizar();
+  }catch(e){
+    notif('Erro ao atualizar status: '+e.message,'erro');
+    if(selectEl) selectEl.value = o.status;
+  }
+}
+
+/* =====================================================================
+   POPUP DE REPROVAÇÃO — caixa dedicada só com Data + Motivo
+   Usada tanto pela troca rápida na listagem quanto pelo modal de edição.
+===================================================================== */
+let _reprovacaoContexto = null;
+
+function abrirPopupReprovacao(contexto, prefill){
+  _reprovacaoContexto = contexto;
+  popularSelectMotivosReprovacao('reprovacao-motivo', prefill?.motivo || '');
+  document.getElementById('reprovacao-data').value = prefill?.data || new Date().toISOString().slice(0,10);
+  abrirModal('modal-reprovar-orcamento');
+}
+
+function cancelarReprovacaoOrcamento(){
+  fecharModal('modal-reprovar-orcamento');
+  if(_reprovacaoContexto?.tipo === 'inline' && _reprovacaoContexto.selectEl){
+    _reprovacaoContexto.selectEl.value = _reprovacaoContexto.statusAnterior;
+  }
+  if(_reprovacaoContexto?.tipo === 'modal'){
+    // Só reverte o status se ainda não havia um motivo confirmado antes (primeira tentativa)
+    if(!document.getElementById('orcamento-motivo-reprovacao').value){
+      document.getElementById('orcamento-status').value = _reprovacaoContexto.statusAnterior;
+      document.getElementById('linha-motivo-reprovacao').style.display = 'none';
+    }
+  }
+  _reprovacaoContexto = null;
+}
+
+async function confirmarReprovacaoOrcamento(){
+  const data = document.getElementById('reprovacao-data').value;
+  const motivo = document.getElementById('reprovacao-motivo').value;
+  if(!data){ notif('Informe a data da reprovação.','erro'); return; }
+  if(!motivo){ notif('Selecione o motivo da reprovação.','erro'); return; }
+  if(!_reprovacaoContexto){ fecharModal('modal-reprovar-orcamento'); return; }
+
+  if(_reprovacaoContexto.tipo === 'inline'){
+    const id = _reprovacaoContexto.orcamentoId;
+    try{
+      await sb('orcamentos?id=eq.'+id, {metodo:'PATCH', corpo:{status:'reprovado', motivo_reprovacao:motivo, data_reprovacao:data}, cabecalhos:{Prefer:'return=minimal'}});
+      notif('Orçamento reprovado','sucesso');
+      fecharModal('modal-reprovar-orcamento');
+      _reprovacaoContexto = null;
+      await atualizarEdRenderizar();
+    }catch(e){ notif('Erro ao reprovar: '+e.message,'erro'); }
+  } else {
+    document.getElementById('orcamento-motivo-reprovacao').value = motivo;
+    document.getElementById('orcamento-data-reprovacao').value = data;
+    atualizarResumoReprovacaoModal();
+    fecharModal('modal-reprovar-orcamento');
+    _reprovacaoContexto = null;
+  }
+}
+
+function atualizarResumoReprovacaoModal(){
+  const motivo = document.getElementById('orcamento-motivo-reprovacao').value;
+  const data = document.getElementById('orcamento-data-reprovacao').value;
+  const texto = document.getElementById('resumo-reprovacao-texto');
+  if(texto) texto.textContent = motivo ? ('Motivo: ' + motivo + '  —  Data: ' + formatarData(data)) : 'Nenhum motivo definido ainda';
+}
+
+function reabrirPopupReprovacaoModal(){
+  const statusEl = document.getElementById('orcamento-status');
+  abrirPopupReprovacao(
+    {tipo:'modal', statusAnterior: statusEl.dataset.anterior || 'rascunho'},
+    {motivo: document.getElementById('orcamento-motivo-reprovacao').value, data: document.getElementById('orcamento-data-reprovacao').value}
+  );
+}
+
 /* =====================================================================
    ORÇAMENTOS
 ===================================================================== */
@@ -3593,6 +3872,61 @@ function limparFiltrosPeriodoOrc(){
   renderizarOrcamentos();
 }
 
+// ---- ORÇAMENTOS REPROVADOS ----
+function inicializarFiltrosOrcRep(){
+  _preencherSelectAno('orcrep-filtro-ano');
+}
+function aplicarFiltroRapidoOrcamentosReprovados(){
+  const el1 = document.getElementById('orcrep-data-inicio');
+  const el2 = document.getElementById('orcrep-data-fim');
+  if(el1) el1.value = '';
+  if(el2) el2.value = '';
+  renderizarOrcamentosReprovados();
+}
+function limparFiltrosPeriodoOrcamentosReprovados(){
+  ['orcrep-filtro-ano','orcrep-filtro-mes'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  ['orcrep-data-inicio','orcrep-data-fim'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  renderizarOrcamentosReprovados();
+}
+function renderizarOrcamentosReprovados(){
+  inicializarFiltrosOrcRep();
+  const selMotivo = document.getElementById('filtro-motivo-orcamentos-reprovados');
+  if(selMotivo && selMotivo.options.length <= 1){
+    selMotivo.innerHTML = '<option value="">Todos os motivos</option>' +
+      estado.motivosReprovacao.map(m=>`<option value="${escapeHtml(m.nome)}">${escapeHtml(m.nome)}</option>`).join('');
+  }
+  const termo = (document.getElementById('busca-orcamentos-reprovados').value||'').toLowerCase();
+  const motivoFiltro = selMotivo ? selMotivo.value : '';
+  let lista = filtrarPorPermissao(estado.orcamentos).filter(o=>o.status==='reprovado');
+  if(termo) lista = lista.filter(o=>nomeClienteOrcamento(o).toLowerCase().includes(termo));
+  if(motivoFiltro) lista = lista.filter(o=>o.motivo_reprovacao===motivoFiltro);
+  lista = _filtrarPorPeriodo(lista, 'data_orcamento', 'orcrep');
+  _atualizarBadgePeriodo('orcrep-periodo-badge', 'orcrep');
+  const corpo = document.getElementById('tbody-orcamentos-reprovados');
+  if(!corpo) return;
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="8"><div class="vazio">Nenhum orçamento reprovado encontrado.</div></td></tr>`; return; }
+  corpo.innerHTML = lista.map(o=>`<tr>
+      <td>#${o.numero}</td>
+      <td>${escapeHtml(nomeClienteOrcamento(o))}</td>
+      <td>${escapeHtml(nomeUsuario(o.vendedor_id))}</td>
+      <td>${formatarData(o.data_orcamento)}</td>
+      <td>${formatarData(o.data_reprovacao)}</td>
+      <td><strong>${formatarMoeda(o.total)}</strong></td>
+      <td><span class="selo selo-vermelho">${escapeHtml(o.motivo_reprovacao||'Sem motivo informado')}</span></td>
+      <td><div class="acoes-linha">
+        <button class="icone-btn" title="Gerar PDF" onclick="gerarPDFOrcamento('${o.id}')">${ICONE_PDF}</button>
+        <button class="icone-btn" title="Editar" onclick="abrirModalOrcamento('${o.id}')">${ICONE_EDITAR}</button>
+        <button class="icone-btn reverter" title="Reverter para rascunho" onclick="reverterOrcamento('${o.id}')">${ICONE_REVERTER}</button>
+      </div></td></tr>`).join('');
+}
+
+
 // ---- PEDIDOS ----
 function inicializarFiltrosPed(){
   _preencherSelectAno('ped-filtro-ano');
@@ -3620,7 +3954,8 @@ function renderizarOrcamentos(){
   inicializarFiltrosOrc();
   const termo = (document.getElementById('busca-orcamentos').value||'').toLowerCase();
   const statusFiltro = document.getElementById('filtro-status-orcamento').value;
-  let lista = filtrarPorPermissao(estado.orcamentos);
+  let lista = filtrarPorPermissao(estado.orcamentos)
+    .filter(o=>o.status!=='reprovado' && !(o.status==='aprovado' && pedidoExisteParaOrcamento(o.id)));
   if(termo) lista = lista.filter(o=>nomeClienteOrcamento(o).toLowerCase().includes(termo));
   if(statusFiltro) lista = lista.filter(o=>o.status===statusFiltro);
   lista = _filtrarPorPeriodo(lista, 'data_orcamento', 'orc');
@@ -3644,18 +3979,38 @@ function renderizarOrcamentos(){
       <td>${formatarData(o.data_orcamento)}</td>
       <td>${formatarData(o.validade)}</td>
       <td><strong>${formatarMoeda(o.total)}</strong></td>
-      <td><span class="selo ${SELO_STATUS_ORC[o.status]}">${ROTULO_STATUS_ORC[o.status]}</span></td>
+      <td>
+        <select class="select-status-inline ${SELO_STATUS_ORC[o.status]}" onchange="mudarStatusOrcamentoInline('${o.id}', this.value, this)">
+          ${Object.keys(ROTULO_STATUS_ORC).filter(s=>s!=='reprovado').map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${ROTULO_STATUS_ORC[s]}</option>`).join('')}
+          <option value="reprovado" ${o.status==='reprovado'?'selected':''}>Reprovado</option>
+        </select>
+      </td>
       <td>${fuBadge}</td>
       <td><div class="acoes-linha">
         <button class="icone-btn" title="Gerar PDF" onclick="gerarPDFOrcamento('${o.id}')">${ICONE_PDF}</button>
         <button class="icone-btn" title="Editar" onclick="abrirModalOrcamento('${o.id}')">${ICONE_EDITAR}</button>
         <button class="icone-btn followup" title="Follow-up: registrar contato" onclick="abrirFollowUp('${o.id}','orcamento')">${ICONE_FOLLOWUP}</button>
-        ${o.status==='rascunho'?`<button class="icone-btn" title="Marcar como enviado" onclick="mudarStatusOrcamento('${o.id}','enviado')">${ICONE_ENVIAR}</button>`:''}
-        ${o.status==='enviado'?`<button class="icone-btn" title="Aprovar" onclick="mudarStatusOrcamento('${o.id}','aprovado')">${ICONE_CHECK}</button><button class="icone-btn perigo" title="Rejeitar" onclick="mudarStatusOrcamento('${o.id}','rejeitado')">${ICONE_X}</button>`:''}
         ${o.status==='aprovado' && !pedidoExisteParaOrcamento(o.id) ? `<button class="icone-btn" title="Gerar pedido" onclick="gerarPedidoDeOrcamento('${o.id}')">${ICONE_PEDIDOS}</button>`:''}
-        ${['aprovado','rejeitado','enviado'].includes(o.status)?`<button class="icone-btn reverter" title="Reverter para rascunho" onclick="reverterOrcamento('${o.id}')">${ICONE_REVERTER}</button>`:''}
+        ${['aguardando_cliente','em_andamento','reprovado','aprovado'].includes(o.status)?`<button class="icone-btn reverter" title="Reverter para rascunho" onclick="reverterOrcamento('${o.id}')">${ICONE_REVERTER}</button>`:''}
         ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="excluirOrcamento('${o.id}')">${ICONE_LIXEIRA}</button>`:''}
       </div></td></tr>`; }).join('');
+}
+function atualizarVisibilidadeMotivoReprovacao(){
+  const status = document.getElementById('orcamento-status').value;
+  document.getElementById('linha-motivo-reprovacao').style.display = (status==='reprovado') ? 'flex' : 'none';
+}
+function onStatusOrcamentoChange(){
+  const statusEl = document.getElementById('orcamento-status');
+  const novo = statusEl.value;
+  if(novo === 'reprovado'){
+    document.getElementById('linha-motivo-reprovacao').style.display = 'flex';
+    abrirPopupReprovacao({tipo:'modal', statusAnterior: statusEl.dataset.anterior || 'rascunho'});
+  } else {
+    document.getElementById('linha-motivo-reprovacao').style.display = 'none';
+    document.getElementById('orcamento-motivo-reprovacao').value = '';
+    document.getElementById('orcamento-data-reprovacao').value = '';
+    statusEl.dataset.anterior = novo;
+  }
 }
 function alternarCampoFrete(){
   const tipo = document.getElementById('orcamento-tipo-frete').value;
@@ -3680,6 +4035,10 @@ function abrirModalOrcamento(id){
     document.getElementById('orcamento-codigo-sistema').value = o.codigo_sistema||'';
     document.getElementById('orcamento-origem').value = o.origem||'';
     popularSelectCidades('orcamento-cidade', o.cidade||'');
+    document.getElementById('orcamento-status').value = o.status||'rascunho';
+    document.getElementById('orcamento-status').dataset.anterior = o.status||'rascunho';
+    document.getElementById('orcamento-motivo-reprovacao').value = o.motivo_reprovacao||'';
+    document.getElementById('orcamento-data-reprovacao').value = o.data_reprovacao||'';
     document.getElementById('orcamento-vendedor').value = o.vendedor_id||'';
     document.getElementById('orcamento-data').value = o.data_orcamento||'';
     document.getElementById('orcamento-validade').value = o.validade||'';
@@ -3697,6 +4056,10 @@ function abrirModalOrcamento(id){
     document.getElementById('orcamento-cliente-manual').value='';
     document.getElementById('orcamento-codigo-sistema').value='';
     document.getElementById('orcamento-origem').value='';
+    document.getElementById('orcamento-status').value='rascunho';
+    document.getElementById('orcamento-status').dataset.anterior='rascunho';
+    document.getElementById('orcamento-motivo-reprovacao').value='';
+    document.getElementById('orcamento-data-reprovacao').value='';
     document.getElementById('orcamento-data').value = new Date().toISOString().slice(0,10);
     atualizarValidadeAutomatica();
     document.getElementById('orcamento-desconto').value=0;
@@ -3707,6 +4070,8 @@ function abrirModalOrcamento(id){
     itensBuilder = [];
   }
   alternarCampoFrete();
+  atualizarVisibilidadeMotivoReprovacao();
+  atualizarResumoReprovacaoModal();
   if(!itensBuilder.length) itensBuilder.push({produto_id:'', quantidade:1, preco_unitario:0, cor_id:'', espessura_id:'', tipo_pintura_id:'', tipo_isopor_id:''});
   renderizarItensBuilder();
   abrirModal('modal-orcamento');
@@ -3772,6 +4137,11 @@ async function salvarOrcamento(){
   if(!clienteNomeManual){ notif('Digite o nome do cliente.','erro'); return; }
   const itensValidos = itensBuilder.filter(it=>it.produto_id && it.quantidade>0);
   if(!itensValidos.length){ notif('Adicione ao menos um item válido.','erro'); return; }
+  const status = document.getElementById('orcamento-status').value || 'rascunho';
+  const motivoReprovacao = document.getElementById('orcamento-motivo-reprovacao').value || '';
+  const dataReprovacao = document.getElementById('orcamento-data-reprovacao').value || '';
+  if(status==='reprovado' && !motivoReprovacao){ notif('Selecione o motivo da reprovação.','erro'); return; }
+  if(status==='reprovado' && !dataReprovacao){ notif('Informe a data da reprovação.','erro'); return; }
   const subtotal = itensValidos.reduce((s,it)=>s+(it.quantidade*it.preco_unitario),0);
   const desconto = Number(document.getElementById('orcamento-desconto').value)||0;
   const tipoFrete = document.getElementById('orcamento-tipo-frete').value;
@@ -3782,6 +4152,9 @@ async function salvarOrcamento(){
     codigo_sistema: document.getElementById('orcamento-codigo-sistema').value.trim() || null,
     origem: document.getElementById('orcamento-origem').value || null,
     cidade: document.getElementById('orcamento-cidade').value || null,
+    status,
+    motivo_reprovacao: status==='reprovado' ? motivoReprovacao : null,
+    data_reprovacao: status==='reprovado' ? dataReprovacao : null,
     vendedor_id: document.getElementById('orcamento-vendedor').value || estado.usuario.id,
     data_orcamento: document.getElementById('orcamento-data').value || new Date().toISOString().slice(0,10),
     validade: document.getElementById('orcamento-validade').value || null,
@@ -3946,6 +4319,7 @@ function renderizarPedidos(){
       <td><span class="selo ${SELO_STATUS_PED[p.status]}">${ROTULO_STATUS_PED[p.status]}</span></td>
       <td><div class="acoes-linha">
         <button class="icone-btn" title="Atualizar" onclick="abrirModalPedido('${p.id}')">${ICONE_EDITAR}</button>
+        <button class="icone-btn reverter" title="Reverter orçamento para rascunho" onclick="reverterPedidoParaRascunho('${p.id}')">${ICONE_REVERTER}</button>
         ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="excluirPedido('${p.id}')">${ICONE_LIXEIRA}</button>`:''}
       </div></td></tr>`).join('');
 }
@@ -3980,6 +4354,24 @@ async function excluirPedido(id){
     await atualizarEdRenderizar();
   }catch(e){ notif('Erro ao excluir: '+e.message,'erro'); }
 }
+async function reverterPedidoParaRascunho(id){
+  const p = estado.pedidos.find(x=>x.id===id);
+  if(!p) return;
+  const o = p.orcamento_id ? estado.orcamentos.find(x=>x.id===p.orcamento_id) : null;
+  const msg = o
+    ? 'Reverter o orçamento #'+o.numero+' para Rascunho?\nO pedido #'+p.numero+' será removido desta lista, e o orçamento voltará para edição.'
+    : 'Este pedido não possui orçamento vinculado. Excluir o pedido #'+p.numero+'?';
+  if(!confirm(msg)) return;
+  try{
+    if(o){
+      await sb('orcamentos?id=eq.'+o.id, {metodo:'PATCH', corpo:{status:'rascunho'}, cabecalhos:{Prefer:'return=minimal'}});
+    }
+    await sb(`pedidos?id=eq.${id}`, {metodo:'DELETE', cabecalhos:{Prefer:'return=minimal'}});
+    notif('Revertido para Rascunho','sucesso');
+    await atualizarEdRenderizar();
+    navegarPagina('orcamentos');
+  }catch(e){ notif('Erro ao reverter: '+e.message,'erro'); }
+}
 
 
 /* =====================================================================
@@ -3994,6 +4386,7 @@ const PAGINAS_DISPONIVEIS_VENDEDOR = [
   {id:'clientes',   rotulo:'Clientes',        icone:'👥'},
   {id:'produtos',   rotulo:'Produtos',        icone:'📦'},
   {id:'orcamentos', rotulo:'Orçamentos',      icone:'📄'},
+  {id:'orcamentos_reprovados', rotulo:'Orçamentos Reprovados', icone:'🚫'},
   {id:'pedidos',    rotulo:'Pedidos',         icone:'🚚'},
   {id:'analises',   rotulo:'Análises',        icone:'📈'},
 ];
@@ -4005,7 +4398,7 @@ function carregarPermissoesVendedor(vendedorId){
   }catch(e){}
   // Padrão: acesso às páginas básicas, ver apenas os próprios
   return {
-    paginas: ['dashboard','metas','funil','clientes','produtos','orcamentos','pedidos'],
+    paginas: ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos'],
     verTodosClientes: false,
   };
 }
@@ -4017,7 +4410,7 @@ function salvarPermissoesVendedor(vendedorId, cfg){
 function obterPaginasVendedor(vendedorId){
   if(podeVerTudo()) return PAGINAS_DISPONIVEIS_VENDEDOR.map(p=>p.id);
   const cfg = carregarPermissoesVendedor(vendedorId);
-  return cfg.paginas || ['dashboard','metas','funil','clientes','produtos','orcamentos','pedidos'];
+  return cfg.paginas || ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos'];
 }
 
 function vendedorPodeVerPagina(vendedorId, paginaId){
@@ -4190,6 +4583,7 @@ const CADASTROS_SIMPLES = {
   espessuras:    { tabela:'espessuras',    rotulo:'Espessura',       rotuloCampo:'Espessura *',       estadoChave:'espessuras' },
   tipos_isopor:  { tabela:'tipos_isopor',  rotulo:'Tipo de Isopor',  rotuloCampo:'Tipo de isopor *',  estadoChave:'tiposIsopor' },
   cidades:       { tabela:'cidades',       rotulo:'Cidade',          rotuloCampo:'Nome da cidade *',  estadoChave:'cidades' },
+  motivos_reprovacao: { tabela:'motivos_reprovacao', rotulo:'Motivo de Reprovação', rotuloCampo:'Motivo de reprovação *', estadoChave:'motivosReprovacao' },
 };
 let abaCadastroAtual = 'origens_lead';
 
