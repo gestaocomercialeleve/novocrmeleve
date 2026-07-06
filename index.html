@@ -1008,9 +1008,8 @@ tbody tr:hover{background:#FAFBFD;}
       <div class="linha-campos">
         <div class="campo"><label>Número do orçamento</label><input type="text" id="orcamento-numero" placeholder="Gerado automaticamente se vazio"></div>
         <div class="campo">
-          <label>Cliente * <span id="link-cliente-manual" onclick="alternarClienteManual()" style="font-weight:400;cursor:pointer;color:var(--azul,#2F5DA0);font-size:11.5px;text-decoration:underline;">(digitar manualmente)</span></label>
-          <select id="orcamento-cliente"></select>
-          <input type="text" id="orcamento-cliente-manual" placeholder="Digite o nome do cliente" style="display:none;margin-top:6px;width:100%;padding:9px 12px;border:1.3px solid var(--borda);border-radius:8px;">
+          <label>Cliente *</label>
+          <input type="text" id="orcamento-cliente-manual" placeholder="Digite o nome do cliente">
         </div>
       </div>
       <div class="linha-campos">
@@ -1263,6 +1262,7 @@ function formatarDataHora(d){ if(!d) return '—'; return new Date(d).toLocaleDa
 function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function nomeCliente(id){ const c = estado.clientes.find(c=>c.id===id); return c ? c.nome : '—'; }
 function nomeClienteOrcamento(o){ if(!o) return '—'; return o.cliente_nome_manual ? o.cliente_nome_manual : nomeCliente(o.cliente_id); }
+function nomeClientePedido(p){ if(!p) return '—'; return p.cliente_nome_manual ? p.cliente_nome_manual : nomeCliente(p.cliente_id); }
 function calcularDataMaisDias(dataStr, dias){
   if(!dataStr) return '';
   const d = new Date(dataStr+'T00:00:00');
@@ -3655,22 +3655,6 @@ function renderizarOrcamentos(){
         ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="excluirOrcamento('${o.id}')">${ICONE_LIXEIRA}</button>`:''}
       </div></td></tr>`; }).join('');
 }
-function alternarClienteManual(forcarManual){
-  const select = document.getElementById('orcamento-cliente');
-  const manual = document.getElementById('orcamento-cliente-manual');
-  const link = document.getElementById('link-cliente-manual');
-  const usandoManualAtualmente = manual.style.display !== 'none';
-  const irParaManual = (forcarManual !== undefined) ? forcarManual : !usandoManualAtualmente;
-  if(irParaManual){
-    select.style.display = 'none'; select.value = '';
-    manual.style.display = 'block';
-    link.textContent = '(selecionar cliente cadastrado)';
-  } else {
-    manual.style.display = 'none'; manual.value = '';
-    select.style.display = '';
-    link.textContent = '(digitar manualmente)';
-  }
-}
 function alternarCampoFrete(){
   const tipo = document.getElementById('orcamento-tipo-frete').value;
   document.getElementById('linha-valor-frete').style.display = (tipo==='CIF') ? 'flex' : 'none';
@@ -3682,7 +3666,6 @@ function atualizarValidadeAutomatica(){
   document.getElementById('orcamento-validade').value = calcularDataMaisDias(data, 5);
 }
 function abrirModalOrcamento(id){
-  popularSelectClientes('orcamento-cliente');
   popularSelectVendedores('orcamento-vendedor');
   popularSelectOrigensLead('orcamento-origem');
   document.getElementById('titulo-modal-orcamento').textContent = id ? 'Editar Orçamento' : 'Novo Orçamento';
@@ -3690,8 +3673,6 @@ function abrirModalOrcamento(id){
     const o = estado.orcamentos.find(x=>x.id===id);
     document.getElementById('orcamento-id').value = o.id;
     document.getElementById('orcamento-numero').value = o.numero||'';
-    alternarClienteManual(!!o.cliente_nome_manual);
-    document.getElementById('orcamento-cliente').value = o.cliente_id||'';
     document.getElementById('orcamento-cliente-manual').value = o.cliente_nome_manual||'';
     document.getElementById('orcamento-codigo-sistema').value = o.codigo_sistema||'';
     document.getElementById('orcamento-origem').value = o.origem||'';
@@ -3709,7 +3690,6 @@ function abrirModalOrcamento(id){
   } else {
     document.getElementById('orcamento-id').value='';
     document.getElementById('orcamento-numero').value='';
-    alternarClienteManual(false);
     document.getElementById('orcamento-cliente-manual').value='';
     document.getElementById('orcamento-codigo-sistema').value='';
     document.getElementById('orcamento-origem').value='';
@@ -3784,15 +3764,8 @@ function recalcularTotalOrcamento(){
 }
 async function salvarOrcamento(){
   const id = document.getElementById('orcamento-id').value;
-  const usandoClienteManual = document.getElementById('orcamento-cliente-manual').style.display !== 'none';
-  let clienteId = null, clienteNomeManual = null;
-  if(usandoClienteManual){
-    clienteNomeManual = document.getElementById('orcamento-cliente-manual').value.trim();
-    if(!clienteNomeManual){ notif('Digite o nome do cliente.','erro'); return; }
-  } else {
-    clienteId = document.getElementById('orcamento-cliente').value;
-    if(!clienteId){ notif('Selecione o cliente.','erro'); return; }
-  }
+  const clienteNomeManual = document.getElementById('orcamento-cliente-manual').value.trim();
+  if(!clienteNomeManual){ notif('Digite o nome do cliente.','erro'); return; }
   const itensValidos = itensBuilder.filter(it=>it.produto_id && it.quantidade>0);
   if(!itensValidos.length){ notif('Adicione ao menos um item válido.','erro'); return; }
   const subtotal = itensValidos.reduce((s,it)=>s+(it.quantidade*it.preco_unitario),0);
@@ -3801,7 +3774,6 @@ async function salvarOrcamento(){
   const valorFrete = tipoFrete==='CIF' ? (Number(document.getElementById('orcamento-valor-frete').value)||0) : 0;
   const total = Math.max(subtotal-desconto,0) + valorFrete;
   const corpoOrc = {
-    cliente_id: clienteId,
     cliente_nome_manual: clienteNomeManual,
     codigo_sistema: document.getElementById('orcamento-codigo-sistema').value.trim() || null,
     origem: document.getElementById('orcamento-origem').value || null,
@@ -3864,7 +3836,7 @@ async function gerarPedidoDeOrcamento(orcamentoId){
   const o = estado.orcamentos.find(x=>x.id===orcamentoId);
   if(!o || !confirm('Gerar um pedido a partir deste orçamento?')) return;
   try{
-    await sb('pedidos', {metodo:'POST', corpo:{ orcamento_id:o.id, cliente_id:o.cliente_id, vendedor_id:o.vendedor_id, valor_total:o.total, status:'pendente' }, cabecalhos:{Prefer:'return=minimal'}});
+    await sb('pedidos', {metodo:'POST', corpo:{ orcamento_id:o.id, cliente_id:o.cliente_id||null, cliente_nome_manual:o.cliente_nome_manual||null, vendedor_id:o.vendedor_id, valor_total:o.total, status:'pendente' }, cabecalhos:{Prefer:'return=minimal'}});
     notif('Pedido gerado com sucesso','sucesso');
     await atualizarEdRenderizar();
     navegarPagina('pedidos');
@@ -3952,7 +3924,7 @@ function renderizarPedidos(){
   const termo = (document.getElementById('busca-pedidos').value||'').toLowerCase();
   const statusFiltro = document.getElementById('filtro-status-pedido').value;
   let lista = filtrarPorPermissao(estado.pedidos);
-  if(termo) lista = lista.filter(p=>nomeCliente(p.cliente_id).toLowerCase().includes(termo));
+  if(termo) lista = lista.filter(p=>nomeClientePedido(p).toLowerCase().includes(termo));
   if(statusFiltro) lista = lista.filter(p=>p.status===statusFiltro);
   lista = _filtrarPorPeriodo(lista, 'data_pedido', 'ped');
   _atualizarBadgePeriodo('ped-periodo-badge', 'ped');
@@ -3960,7 +3932,7 @@ function renderizarPedidos(){
   if(!lista.length){ corpo.innerHTML = `<tr><td colspan="8"><div class="vazio">Nenhum pedido encontrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(p=>`<tr>
       <td>#${p.numero}</td>
-      <td>${escapeHtml(nomeCliente(p.cliente_id))}</td>
+      <td>${escapeHtml(nomeClientePedido(p))}</td>
       <td>${escapeHtml(nomeUsuario(p.vendedor_id))}</td>
       <td>${formatarData(p.data_pedido)}</td>
       <td>${formatarData(p.previsao_entrega)}</td>
