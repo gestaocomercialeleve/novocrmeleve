@@ -770,7 +770,7 @@ tbody tr:hover{background:#FAFBFD;}
           <div class="tabela-wrap">
             <table>
               <thead><tr>
-                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Total</th><th>Status</th><th>Follow-up</th><th></th>
+                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Lead Time</th><th>Total</th><th>Status</th><th>Follow-up</th><th></th>
               </tr></thead>
               <tbody id="tbody-orcamentos"></tbody>
             </table>
@@ -1380,6 +1380,21 @@ function calcularDataMaisDias(dataStr, dias){
   const d = new Date(dataStr+'T00:00:00');
   d.setDate(d.getDate()+Number(dias||0));
   return d.toISOString().slice(0,10);
+}
+// Lead time = dias corridos entre a data de CADASTRO do orçamento e hoje.
+// Não considera a validade em nenhuma hipótese.
+function calcularLeadTimeDias(dataCadastro){
+  if(!dataCadastro) return null;
+  const inicio = new Date(dataCadastro+'T00:00:00');
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const diffMs = hoje - inicio;
+  return Math.max(0, Math.round(diffMs / (1000*60*60*24)));
+}
+function leadTimeBadge(dataCadastro){
+  const dias = calcularLeadTimeDias(dataCadastro);
+  if(dias === null) return '—';
+  const cor = dias <= 3 ? 'selo-verde' : dias <= 7 ? 'selo-amarelo' : 'selo-vermelho';
+  return `<span class="selo ${cor}" title="Dias desde o cadastro do orçamento (${formatarData(dataCadastro)}), sem considerar a validade">${dias} dia${dias===1?'':'s'}</span>`;
 }
 function nomeUsuario(id){ const u = estado.usuarios.find(u=>u.id===id); return u ? u.nome : '—'; }
 function abrirModal(id){ document.getElementById(id).classList.add('aberto'); }
@@ -3961,7 +3976,7 @@ function renderizarOrcamentos(){
   lista = _filtrarPorPeriodo(lista, 'data_orcamento', 'orc');
   _atualizarBadgePeriodo('orc-periodo-badge', 'orc');
   const corpo = document.getElementById('tbody-orcamentos');
-  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="9"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="10"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(o=>{
     const followups = carregarFollowUps('orcamento', o.id);
     const ultimoFu = followups.length ? followups[followups.length-1] : null;
@@ -3978,6 +3993,7 @@ function renderizarOrcamentos(){
       <td>${escapeHtml(nomeUsuario(o.vendedor_id))}</td>
       <td>${formatarData(o.data_orcamento)}</td>
       <td>${formatarData(o.validade)}</td>
+      <td>${leadTimeBadge(o.data_orcamento)}</td>
       <td><strong>${formatarMoeda(o.total)}</strong></td>
       <td>
         <select class="select-status-inline ${SELO_STATUS_ORC[o.status]}" onchange="mudarStatusOrcamentoInline('${o.id}', this.value, this)">
