@@ -1007,14 +1007,31 @@ tbody tr:hover{background:#FAFBFD;}
       <input type="hidden" id="orcamento-id">
       <div class="linha-campos">
         <div class="campo"><label>Número do orçamento</label><input type="text" id="orcamento-numero" placeholder="Gerado automaticamente se vazio"></div>
-        <div class="campo"><label>Cliente *</label><select id="orcamento-cliente"></select></div>
+        <div class="campo">
+          <label>Cliente * <span id="link-cliente-manual" onclick="alternarClienteManual()" style="font-weight:400;cursor:pointer;color:var(--azul,#2F5DA0);font-size:11.5px;text-decoration:underline;">(digitar manualmente)</span></label>
+          <select id="orcamento-cliente"></select>
+          <input type="text" id="orcamento-cliente-manual" placeholder="Digite o nome do cliente" style="display:none;margin-top:6px;width:100%;padding:9px 12px;border:1.3px solid var(--borda);border-radius:8px;">
+        </div>
+      </div>
+      <div class="linha-campos">
+        <div class="campo"><label>Código sistema</label><input type="text" id="orcamento-codigo-sistema" placeholder="Código interno / sistema"></div>
+        <div class="campo"><label>Origem do lead</label><select id="orcamento-origem"><option value="">Selecione...</option></select></div>
       </div>
       <div class="linha-campos">
         <div class="campo"><label>Vendedor</label><select id="orcamento-vendedor"></select></div>
-        <div class="campo"><label>Data</label><input type="date" id="orcamento-data"></div>
+        <div class="campo"><label>Data</label><input type="date" id="orcamento-data" onchange="atualizarValidadeAutomatica()"></div>
       </div>
       <div class="linha-campos">
-        <div class="campo"><label>Válido até</label><input type="date" id="orcamento-validade"></div>
+        <div class="campo"><label>Válido até <span style="font-weight:400;color:var(--texto-suave);font-size:11px;">(data + 5 dias, editável)</span></label><input type="date" id="orcamento-validade"></div>
+        <div class="campo"><label>Frete</label>
+          <select id="orcamento-tipo-frete" onchange="alternarCampoFrete()">
+            <option value="FOB">FOB (por conta do cliente)</option>
+            <option value="CIF">CIF (por conta da empresa)</option>
+          </select>
+        </div>
+      </div>
+      <div class="linha-campos" id="linha-valor-frete" style="display:none;">
+        <div class="campo"><label>Valor do frete (R$)</label><input type="number" min="0" step="0.01" id="orcamento-valor-frete" value="0" oninput="recalcularTotalOrcamento()"></div>
         <div class="campo"></div>
       </div>
 
@@ -1025,6 +1042,7 @@ tbody tr:hover{background:#FAFBFD;}
       <div class="total-orcamento">
         <div>Subtotal: <strong id="orcamento-subtotal-exibido">R$ 0,00</strong></div>
         <div style="display:flex;align-items:center;gap:8px;">Desconto (R$): <input type="number" step="0.01" id="orcamento-desconto" value="0" oninput="recalcularTotalOrcamento()" style="width:100px;padding:6px 9px;border:1.3px solid var(--borda);border-radius:7px;"></div>
+        <div id="orcamento-frete-exibido-wrap" style="display:none;">Frete: <strong id="orcamento-frete-exibido">R$ 0,00</strong></div>
         <div>Total: <span class="destaque" id="orcamento-total-exibido">R$ 0,00</span></div>
       </div>
 
@@ -1244,6 +1262,13 @@ function formatarData(d){ if(!d) return '—'; const partes = d.split('-'); if(p
 function formatarDataHora(d){ if(!d) return '—'; return new Date(d).toLocaleDateString('pt-BR'); }
 function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function nomeCliente(id){ const c = estado.clientes.find(c=>c.id===id); return c ? c.nome : '—'; }
+function nomeClienteOrcamento(o){ if(!o) return '—'; return o.cliente_nome_manual ? o.cliente_nome_manual : nomeCliente(o.cliente_id); }
+function calcularDataMaisDias(dataStr, dias){
+  if(!dataStr) return '';
+  const d = new Date(dataStr+'T00:00:00');
+  d.setDate(d.getDate()+Number(dias||0));
+  return d.toISOString().slice(0,10);
+}
 function nomeUsuario(id){ const u = estado.usuarios.find(u=>u.id===id); return u ? u.nome : '—'; }
 function abrirModal(id){ document.getElementById(id).classList.add('aberto'); }
 function fecharModal(id){ document.getElementById(id).classList.remove('aberto'); }
@@ -3046,8 +3071,8 @@ function obterItensFunil(filtroVendedor, filtroPeriodo){
 
   const itensOrc = orcs.map(o=>({
     id: 'orc_' + o.id,
-    titulo: `Orç. #${o.numero} — ${nomeCliente(o.cliente_id)}`,
-    cliente: nomeCliente(o.cliente_id),
+    titulo: `Orç. #${o.numero} — ${nomeClienteOrcamento(o)}`,
+    cliente: nomeClienteOrcamento(o),
     vendedor: nomeUsuario(o.vendedor_id),
     vendedor_id: o.vendedor_id,
     valor: Number(o.total||0),
@@ -3383,7 +3408,7 @@ function abrirFollowUp(refId, refTipo){
   let infoTxt = '';
   if(refTipo === 'orcamento'){
     const o = estado.orcamentos.find(x=>x.id===refId);
-    if(o) infoTxt = `Orçamento #${o.numero} — ${nomeCliente(o.cliente_id)} — ${formatarMoeda(o.total)}`;
+    if(o) infoTxt = `Orçamento #${o.numero} — ${nomeClienteOrcamento(o)} — ${formatarMoeda(o.total)}`;
   } else {
     const l = estado.leads.find(x=>x.id===refId);
     if(l) infoTxt = `Lead: ${l.titulo} — ${nomeCliente(l.cliente_id)}`;
@@ -3594,7 +3619,7 @@ function renderizarOrcamentos(){
   const termo = (document.getElementById('busca-orcamentos').value||'').toLowerCase();
   const statusFiltro = document.getElementById('filtro-status-orcamento').value;
   let lista = filtrarPorPermissao(estado.orcamentos);
-  if(termo) lista = lista.filter(o=>nomeCliente(o.cliente_id).toLowerCase().includes(termo));
+  if(termo) lista = lista.filter(o=>nomeClienteOrcamento(o).toLowerCase().includes(termo));
   if(statusFiltro) lista = lista.filter(o=>o.status===statusFiltro);
   lista = _filtrarPorPeriodo(lista, 'data_orcamento', 'orc');
   _atualizarBadgePeriodo('orc-periodo-badge', 'orc');
@@ -3612,7 +3637,7 @@ function renderizarOrcamentos(){
       : followups.length ? `<span style="font-size:11px;color:var(--texto-suave);">${followups.length}x</span>` : '—';
     return `<tr>
       <td>#${o.numero}</td>
-      <td>${escapeHtml(nomeCliente(o.cliente_id))}</td>
+      <td>${escapeHtml(nomeClienteOrcamento(o))}</td>
       <td>${escapeHtml(nomeUsuario(o.vendedor_id))}</td>
       <td>${formatarData(o.data_orcamento)}</td>
       <td>${formatarData(o.validade)}</td>
@@ -3630,19 +3655,52 @@ function renderizarOrcamentos(){
         ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="excluirOrcamento('${o.id}')">${ICONE_LIXEIRA}</button>`:''}
       </div></td></tr>`; }).join('');
 }
+function alternarClienteManual(forcarManual){
+  const select = document.getElementById('orcamento-cliente');
+  const manual = document.getElementById('orcamento-cliente-manual');
+  const link = document.getElementById('link-cliente-manual');
+  const usandoManualAtualmente = manual.style.display !== 'none';
+  const irParaManual = (forcarManual !== undefined) ? forcarManual : !usandoManualAtualmente;
+  if(irParaManual){
+    select.style.display = 'none'; select.value = '';
+    manual.style.display = 'block';
+    link.textContent = '(selecionar cliente cadastrado)';
+  } else {
+    manual.style.display = 'none'; manual.value = '';
+    select.style.display = '';
+    link.textContent = '(digitar manualmente)';
+  }
+}
+function alternarCampoFrete(){
+  const tipo = document.getElementById('orcamento-tipo-frete').value;
+  document.getElementById('linha-valor-frete').style.display = (tipo==='CIF') ? 'flex' : 'none';
+  if(tipo!=='CIF') document.getElementById('orcamento-valor-frete').value = 0;
+  recalcularTotalOrcamento();
+}
+function atualizarValidadeAutomatica(){
+  const data = document.getElementById('orcamento-data').value;
+  document.getElementById('orcamento-validade').value = calcularDataMaisDias(data, 5);
+}
 function abrirModalOrcamento(id){
   popularSelectClientes('orcamento-cliente');
   popularSelectVendedores('orcamento-vendedor');
+  popularSelectOrigensLead('orcamento-origem');
   document.getElementById('titulo-modal-orcamento').textContent = id ? 'Editar Orçamento' : 'Novo Orçamento';
   if(id){
     const o = estado.orcamentos.find(x=>x.id===id);
     document.getElementById('orcamento-id').value = o.id;
     document.getElementById('orcamento-numero').value = o.numero||'';
+    alternarClienteManual(!!o.cliente_nome_manual);
     document.getElementById('orcamento-cliente').value = o.cliente_id||'';
+    document.getElementById('orcamento-cliente-manual').value = o.cliente_nome_manual||'';
+    document.getElementById('orcamento-codigo-sistema').value = o.codigo_sistema||'';
+    document.getElementById('orcamento-origem').value = o.origem||'';
     document.getElementById('orcamento-vendedor').value = o.vendedor_id||'';
     document.getElementById('orcamento-data').value = o.data_orcamento||'';
     document.getElementById('orcamento-validade').value = o.validade||'';
     document.getElementById('orcamento-desconto').value = o.desconto||0;
+    document.getElementById('orcamento-tipo-frete').value = o.tipo_frete||'FOB';
+    document.getElementById('orcamento-valor-frete').value = o.valor_frete||0;
     document.getElementById('orcamento-observacoes').value = o.observacoes||'';
     itensBuilder = itensDoOrcamento(o.id).map(i=>({
       produto_id:i.produto_id, quantidade:Number(i.quantidade), preco_unitario:Number(i.preco_unitario),
@@ -3651,13 +3709,20 @@ function abrirModalOrcamento(id){
   } else {
     document.getElementById('orcamento-id').value='';
     document.getElementById('orcamento-numero').value='';
+    alternarClienteManual(false);
+    document.getElementById('orcamento-cliente-manual').value='';
+    document.getElementById('orcamento-codigo-sistema').value='';
+    document.getElementById('orcamento-origem').value='';
     document.getElementById('orcamento-data').value = new Date().toISOString().slice(0,10);
-    document.getElementById('orcamento-validade').value='';
+    atualizarValidadeAutomatica();
     document.getElementById('orcamento-desconto').value=0;
+    document.getElementById('orcamento-tipo-frete').value='FOB';
+    document.getElementById('orcamento-valor-frete').value=0;
     document.getElementById('orcamento-observacoes').value='';
     if(!podeVerTudo()) document.getElementById('orcamento-vendedor').value = estado.usuario.id;
     itensBuilder = [];
   }
+  alternarCampoFrete();
   if(!itensBuilder.length) itensBuilder.push({produto_id:'', quantidade:1, preco_unitario:0, cor_id:'', espessura_id:'', tipo_pintura_id:'', tipo_isopor_id:''});
   renderizarItensBuilder();
   abrirModal('modal-orcamento');
@@ -3710,23 +3775,41 @@ function mudarAtributoItem(idx, campo, valor){ itensBuilder[idx][campo+'_id'] = 
 function recalcularTotalOrcamento(){
   const subtotal = itensBuilder.reduce((s,it)=>s+(Number(it.quantidade)*Number(it.preco_unitario)),0);
   const desconto = Number(document.getElementById('orcamento-desconto').value)||0;
+  const tipoFrete = document.getElementById('orcamento-tipo-frete').value;
+  const valorFrete = tipoFrete==='CIF' ? (Number(document.getElementById('orcamento-valor-frete').value)||0) : 0;
   document.getElementById('orcamento-subtotal-exibido').textContent = formatarMoeda(subtotal);
-  document.getElementById('orcamento-total-exibido').textContent = formatarMoeda(Math.max(subtotal-desconto,0));
+  document.getElementById('orcamento-frete-exibido-wrap').style.display = tipoFrete==='CIF' ? 'block' : 'none';
+  document.getElementById('orcamento-frete-exibido').textContent = formatarMoeda(valorFrete);
+  document.getElementById('orcamento-total-exibido').textContent = formatarMoeda(Math.max(subtotal-desconto,0)+valorFrete);
 }
 async function salvarOrcamento(){
   const id = document.getElementById('orcamento-id').value;
-  const clienteId = document.getElementById('orcamento-cliente').value;
-  if(!clienteId){ notif('Selecione o cliente.','erro'); return; }
+  const usandoClienteManual = document.getElementById('orcamento-cliente-manual').style.display !== 'none';
+  let clienteId = null, clienteNomeManual = null;
+  if(usandoClienteManual){
+    clienteNomeManual = document.getElementById('orcamento-cliente-manual').value.trim();
+    if(!clienteNomeManual){ notif('Digite o nome do cliente.','erro'); return; }
+  } else {
+    clienteId = document.getElementById('orcamento-cliente').value;
+    if(!clienteId){ notif('Selecione o cliente.','erro'); return; }
+  }
   const itensValidos = itensBuilder.filter(it=>it.produto_id && it.quantidade>0);
   if(!itensValidos.length){ notif('Adicione ao menos um item válido.','erro'); return; }
   const subtotal = itensValidos.reduce((s,it)=>s+(it.quantidade*it.preco_unitario),0);
   const desconto = Number(document.getElementById('orcamento-desconto').value)||0;
-  const total = Math.max(subtotal-desconto,0);
+  const tipoFrete = document.getElementById('orcamento-tipo-frete').value;
+  const valorFrete = tipoFrete==='CIF' ? (Number(document.getElementById('orcamento-valor-frete').value)||0) : 0;
+  const total = Math.max(subtotal-desconto,0) + valorFrete;
   const corpoOrc = {
     cliente_id: clienteId,
+    cliente_nome_manual: clienteNomeManual,
+    codigo_sistema: document.getElementById('orcamento-codigo-sistema').value.trim() || null,
+    origem: document.getElementById('orcamento-origem').value || null,
     vendedor_id: document.getElementById('orcamento-vendedor').value || estado.usuario.id,
     data_orcamento: document.getElementById('orcamento-data').value || new Date().toISOString().slice(0,10),
     validade: document.getElementById('orcamento-validade').value || null,
+    tipo_frete: tipoFrete,
+    valor_frete: valorFrete,
     desconto, subtotal, total,
     observacoes: document.getElementById('orcamento-observacoes').value || null
   };
@@ -3790,7 +3873,7 @@ async function gerarPedidoDeOrcamento(orcamentoId){
 function gerarPDFOrcamento(id){
   const o = estado.orcamentos.find(x=>x.id===id);
   if(!o){ notif('Orçamento não encontrado','erro'); return; }
-  const cliente = estado.clientes.find(c=>c.id===o.cliente_id) || {};
+  const cliente = o.cliente_nome_manual ? {nome:o.cliente_nome_manual} : (estado.clientes.find(c=>c.id===o.cliente_id) || {});
   const itens = itensDoOrcamento(id);
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -3811,11 +3894,14 @@ function gerarPDFOrcamento(id){
   if(cliente.telefone){ y+=5; doc.text('Telefone: '+cliente.telefone, 14, y); }
   if(cliente.email){ y+=5; doc.text('E-mail: '+cliente.email, 14, y); }
   if(cliente.cidade){ y+=5; doc.text('Cidade: '+cliente.cidade+(cliente.estado?'/'+cliente.estado:''), 14, y); }
+  if(o.codigo_sistema){ y+=5; doc.text('Código sistema: '+o.codigo_sistema, 14, y); }
+  if(o.origem){ y+=5; doc.text('Origem: '+o.origem, 14, y); }
   doc.setFont(undefined,'bold');
   doc.text('Data: '+formatarData(o.data_orcamento), 140, 40);
   doc.text('Validade: '+formatarData(o.validade), 140, 46);
+  doc.text('Frete: '+(o.tipo_frete||'FOB'), 140, 52);
   doc.setFont(undefined,'normal');
-  y += 8;
+  y = Math.max(y, 52) + 8;
   doc.setFillColor(234,241,251);
   doc.rect(14, y, 182, 8, 'F');
   doc.setFont(undefined,'bold'); doc.setFontSize(9.5);
@@ -3843,6 +3929,7 @@ function gerarPDFOrcamento(id){
   doc.setFont(undefined,'bold'); doc.setFontSize(10.5);
   doc.text('Subtotal: ' + formatarMoeda(o.subtotal), 140, y); y += 6;
   doc.text('Desconto: ' + formatarMoeda(o.desconto), 140, y); y += 6;
+  if(o.tipo_frete==='CIF' && Number(o.valor_frete||0)>0){ doc.text('Frete (CIF): ' + formatarMoeda(o.valor_frete), 140, y); y += 6; }
   doc.setFontSize(12);
   doc.text('Total: ' + formatarMoeda(o.total), 140, y);
   if(o.observacoes){
