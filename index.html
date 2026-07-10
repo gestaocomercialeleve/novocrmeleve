@@ -1174,36 +1174,11 @@ tbody tr:hover{background:#FAFBFD;}
       </div>
 
       <div class="campo" style="border-top:1px solid var(--borda);padding-top:14px;margin-top:14px;">
-        <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
           <span>Cobrança</span>
-          <button type="button" class="btn btn-sm btn-fantasma" id="btn-toggle-antecipacao-orcamento" onclick="alternarBlocoAntecipacao('orcamento')" style="padding:4px 10px;font-size:12px;">+ Adicionar Antecipação</button>
+          <button type="button" class="btn btn-sm btn-fantasma" id="btn-gerenciar-antecipacao-orcamento" onclick="abrirModalAntecipacao('orcamento', document.getElementById('orcamento-id').value)" style="padding:4px 10px;font-size:12px;">💰 Gerenciar Antecipações</button>
         </label>
-        <div id="orcamento-bloco-antecipacao" style="display:none;">
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;"><label style="font-size:12px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:6px;">Valor da Antecipação (R$)</label><input type="number" step="0.01" min="0" id="orcamento-valor-antecipacao" placeholder="0,00"></div>
-            <div style="flex:1;"><label style="font-size:12px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:6px;">Data da Antecipação</label><input type="date" id="orcamento-data-antecipacao"></div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-end;margin-top:10px;">
-            <div style="flex:1;"><label style="font-size:12px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:6px;">Forma de Pagamento</label>
-              <select id="orcamento-forma-pagamento-antecipacao">
-                <option value="">Selecione...</option>
-                <option value="Pix">Pix</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                <option value="Cartão de Débito">Cartão de Débito</option>
-                <option value="Transferência/TED">Transferência/TED</option>
-                <option value="Boleto">Boleto</option>
-                <option value="Cheque">Cheque</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--texto-suave);padding-bottom:9px;white-space:nowrap;">
-              <input type="checkbox" id="orcamento-antecipacao-recebida" style="width:16px;height:16px;">
-              ✓ Recebido
-            </label>
-          </div>
-          <button type="button" class="btn btn-sm btn-fantasma" onclick="removerBlocoAntecipacao('orcamento')" style="margin-top:10px;color:var(--vermelho);padding:4px 10px;font-size:12px;">✕ Remover antecipação</button>
-        </div>
+        <p style="font-size:11.5px;color:var(--texto-suave);margin:6px 0 0;">Salve o orçamento primeiro para poder lançar antecipações.</p>
       </div>
 
       <div class="campo" style="margin-top:14px;"><label>Observações</label><textarea id="orcamento-observacoes"></textarea></div>
@@ -1253,36 +1228,10 @@ tbody tr:hover{background:#FAFBFD;}
       </div>
       <div class="campo"><label>Previsão de entrega</label><input type="date" id="pedido-previsao"></div>
       <div class="campo" style="border-top:1px solid var(--borda);padding-top:14px;">
-        <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
           <span>Cobrança</span>
-          <button type="button" class="btn btn-sm btn-fantasma" id="btn-toggle-antecipacao-pedido" onclick="alternarBlocoAntecipacao('pedido')" style="padding:4px 10px;font-size:12px;">+ Adicionar Antecipação</button>
+          <button type="button" class="btn btn-sm btn-fantasma" onclick="abrirModalAntecipacao('pedido', document.getElementById('pedido-id').value)" style="padding:4px 10px;font-size:12px;">💰 Gerenciar Antecipações</button>
         </label>
-        <div id="pedido-bloco-antecipacao" style="display:none;">
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;"><label style="font-size:12px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:6px;">Valor da Antecipação (R$)</label><input type="number" step="0.01" min="0" id="pedido-valor-antecipacao" placeholder="0,00"></div>
-            <div style="flex:1;"><label style="font-size:12px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:6px;">Data da Antecipação</label><input type="date" id="pedido-data-antecipacao"></div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-end;margin-top:10px;">
-            <div style="flex:1;"><label style="font-size:12px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:6px;">Forma de Pagamento</label>
-              <select id="pedido-forma-pagamento-antecipacao">
-                <option value="">Selecione...</option>
-                <option value="Pix">Pix</option>
-                <option value="Dinheiro">Dinheiro</option>
-                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                <option value="Cartão de Débito">Cartão de Débito</option>
-                <option value="Transferência/TED">Transferência/TED</option>
-                <option value="Boleto">Boleto</option>
-                <option value="Cheque">Cheque</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--texto-suave);padding-bottom:9px;white-space:nowrap;">
-              <input type="checkbox" id="pedido-antecipacao-recebida" style="width:16px;height:16px;">
-              ✓ Recebido
-            </label>
-          </div>
-          <button type="button" class="btn btn-sm btn-fantasma" onclick="removerBlocoAntecipacao('pedido')" style="margin-top:10px;color:var(--vermelho);padding:4px 10px;font-size:12px;">✕ Remover antecipação</button>
-        </div>
       </div>
       <div class="campo"><label>Observações</label><textarea id="pedido-observacoes"></textarea></div>
     </div>
@@ -1378,43 +1327,21 @@ tbody tr:hover{background:#FAFBFD;}
 </div>
 
 <div class="overlay-modal" id="modal-antecipacao">
-  <div class="caixa-modal" style="max-width:440px;">
+  <div class="caixa-modal" style="max-width:560px;">
     <div class="cabecalho-modal">
-      <h2>💰 Antecipação</h2>
+      <h2>💰 Antecipações</h2>
       <button class="fechar-modal" onclick="fecharModal('modal-antecipacao')">✕</button>
     </div>
     <div class="corpo-modal">
       <input type="hidden" id="antecipacao-tipo">
       <input type="hidden" id="antecipacao-registro-id">
       <div id="antecipacao-ref-info" style="padding:10px 14px;background:var(--azul-claro);border-radius:9px;margin-bottom:16px;font-size:13px;font-weight:600;color:var(--azul-escuro);"></div>
-      <div style="display:flex;gap:10px;">
-        <div class="campo" style="flex:1;"><label>Valor da Antecipação (R$)</label><input type="number" step="0.01" min="0" id="ant-valor" placeholder="0,00"></div>
-        <div class="campo" style="flex:1;"><label>Data da Antecipação</label><input type="date" id="ant-data"></div>
-      </div>
-      <div class="campo"><label>Forma de Pagamento</label>
-        <select id="ant-forma-pagamento">
-          <option value="">Selecione...</option>
-          <option value="Pix">Pix</option>
-          <option value="Dinheiro">Dinheiro</option>
-          <option value="Cartão de Crédito">Cartão de Crédito</option>
-          <option value="Cartão de Débito">Cartão de Débito</option>
-          <option value="Transferência/TED">Transferência/TED</option>
-          <option value="Boleto">Boleto</option>
-          <option value="Cheque">Cheque</option>
-          <option value="Outro">Outro</option>
-        </select>
-      </div>
-      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--texto-suave);margin-top:4px;">
-        <input type="checkbox" id="ant-recebida" style="width:16px;height:16px;">
-        ✓ Já foi recebida
-      </label>
+      <div id="lista-antecipacoes"></div>
+      <button type="button" class="btn btn-secundario btn-sm" onclick="adicionarLinhaAntecipacao()">+ Adicionar parcela</button>
     </div>
-    <div class="rodape-modal" style="justify-content:space-between;">
-      <button class="btn btn-fantasma" id="btn-ant-remover" onclick="removerAntecipacaoRapida()" style="color:var(--vermelho);">✕ Remover</button>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-fantasma" onclick="fecharModal('modal-antecipacao')">Cancelar</button>
-        <button class="btn btn-primario" onclick="salvarAntecipacaoRapida()">💾 Salvar</button>
-      </div>
+    <div class="rodape-modal">
+      <button class="btn btn-fantasma" onclick="fecharModal('modal-antecipacao')">Cancelar</button>
+      <button class="btn btn-primario" onclick="salvarAntecipacoes()">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -4278,29 +4205,31 @@ function produtosHtmlDe(orcamentoId){
     (restantes>0 ? `<br><span style="color:var(--texto-suave);">+${restantes} ${restantes===1?'item':'itens'}</span>` : '') +
     `</div>`;
 }
+let antecipacoesBuilder = [];
+const FORMAS_PAGAMENTO_ANTECIPACAO = ['Pix','Dinheiro','Cartão de Crédito','Cartão de Débito','Transferência/TED','Boleto','Cheque','Outro'];
 function antecipacaoHtmlDe(o, tipo){
-  const semDados = !o.valor_antecipacao && !o.data_antecipacao;
-  if(semDados){
+  const lista = Array.isArray(o.antecipacoes) ? o.antecipacoes : [];
+  if(!lista.length){
     return `<button class="btn btn-sm btn-fantasma" onclick="abrirModalAntecipacao('${tipo}','${o.id}')" style="padding:4px 9px;font-size:11px;white-space:nowrap;">+ Antecipação</button>`;
   }
   const hoje = new Date().toISOString().slice(0,10);
-  const venceu = o.data_antecipacao && o.data_antecipacao <= hoje;
-  const recebida = !!o.antecipacao_recebida;
-  const statusHtml = recebida
+  const totalValor = lista.reduce((s,a)=>s+Number(a.valor||0),0);
+  const todasRecebidas = lista.every(a=>a.recebida);
+  const algumaVencida = lista.some(a=>!a.recebida && a.data && a.data<=hoje);
+  const statusHtml = todasRecebidas
     ? `<span style="color:var(--verde);font-weight:700;">✓ Recebido</span>`
-    : venceu
+    : algumaVencida
       ? `<span style="color:var(--vermelho);font-weight:700;">Pendente</span>`
       : `<span style="color:var(--texto-suave);">Aguardando</span>`;
   return `<div style="font-size:11.5px;white-space:nowrap;">
-      <strong>${formatarMoeda(o.valor_antecipacao||0)}</strong>
-      <button class="icone-btn" title="Editar antecipação" onclick="abrirModalAntecipacao('${tipo}','${o.id}')" style="width:20px;height:20px;padding:2px;vertical-align:middle;margin-left:2px;">${ICONE_EDITAR}</button>
-      ${o.data_antecipacao ? `<div style="color:${(venceu&&!recebida)?'var(--vermelho)':'var(--texto-suave)'};font-weight:${(venceu&&!recebida)?'700':'400'};">${formatarData(o.data_antecipacao)}</div>` : ''}
-      ${o.forma_pagamento_antecipacao ? `<div style="color:var(--texto-suave);">${escapeHtml(o.forma_pagamento_antecipacao)}</div>` : ''}
+      <strong>${formatarMoeda(totalValor)}</strong>
+      <button class="icone-btn" title="Gerenciar antecipações" onclick="abrirModalAntecipacao('${tipo}','${o.id}')" style="width:20px;height:20px;padding:2px;vertical-align:middle;margin-left:2px;">${ICONE_EDITAR}</button>
+      <div style="color:var(--texto-suave);">${lista.length} ${lista.length===1?'parcela':'parcelas'}</div>
       <div style="margin-top:2px;">${statusHtml}</div>
-      ${!recebida ? `<button class="btn btn-sm btn-fantasma" onclick="marcarAntecipacaoRecebida('${tipo}','${o.id}')" style="padding:2px 8px;font-size:10.5px;margin-top:3px;">✓ Marcar recebido</button>` : ''}
     </div>`;
 }
 function abrirModalAntecipacao(tipo, id){
+  if(!id){ notif('Salve o registro primeiro para poder lançar antecipações.','erro'); return; }
   const lista = tipo==='pedido' ? estado.pedidos : estado.orcamentos;
   const registro = lista.find(x=>x.id===id);
   if(!registro) return;
@@ -4309,61 +4238,57 @@ function abrirModalAntecipacao(tipo, id){
   const rotulo = tipo==='pedido' ? `Pedido #${registro.numero}` : `Orçamento #${registro.numero}`;
   const nomeCliente = tipo==='pedido' ? nomeClientePedido(registro) : nomeClienteOrcamento(registro);
   document.getElementById('antecipacao-ref-info').textContent = `${rotulo} — ${nomeCliente}`;
-  document.getElementById('ant-valor').value = registro.valor_antecipacao||'';
-  document.getElementById('ant-data').value = registro.data_antecipacao||'';
-  document.getElementById('ant-forma-pagamento').value = registro.forma_pagamento_antecipacao||'';
-  document.getElementById('ant-recebida').checked = !!registro.antecipacao_recebida;
-  const temAntecipacao = !!(registro.valor_antecipacao || registro.data_antecipacao);
-  document.getElementById('btn-ant-remover').style.display = temAntecipacao ? '' : 'none';
+  antecipacoesBuilder = (Array.isArray(registro.antecipacoes) ? registro.antecipacoes : []).map(a=>({...a}));
+  renderizarListaAntecipacoes();
   abrirModal('modal-antecipacao');
 }
-async function salvarAntecipacaoRapida(){
+function renderizarListaAntecipacoes(){
+  const wrap = document.getElementById('lista-antecipacoes');
+  if(!antecipacoesBuilder.length){
+    wrap.innerHTML = '<p style="font-size:12.5px;color:var(--texto-suave);margin:0 0 12px;">Nenhuma parcela lançada ainda.</p>';
+    return;
+  }
+  wrap.innerHTML = antecipacoesBuilder.map((a,idx)=>`
+    <div style="display:flex;gap:8px;align-items:flex-end;padding:10px;border:1px solid var(--borda);border-radius:9px;margin-bottom:8px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:95px;"><label style="font-size:11px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:4px;">Valor (R$)</label><input type="number" step="0.01" min="0" value="${a.valor||''}" oninput="atualizarLinhaAntecipacao(${idx},'valor',this.value)" placeholder="0,00" style="width:100%;"></div>
+      <div style="flex:1;min-width:120px;"><label style="font-size:11px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:4px;">Data</label><input type="date" value="${a.data||''}" onchange="atualizarLinhaAntecipacao(${idx},'data',this.value)" style="width:100%;"></div>
+      <div style="flex:1;min-width:135px;"><label style="font-size:11px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:4px;">Forma</label>
+        <select onchange="atualizarLinhaAntecipacao(${idx},'forma_pagamento',this.value)" style="width:100%;">
+          <option value="">Selecione...</option>
+          ${FORMAS_PAGAMENTO_ANTECIPACAO.map(f=>`<option value="${f}" ${a.forma_pagamento===f?'selected':''}>${f}</option>`).join('')}
+        </select>
+      </div>
+      <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--texto-suave);padding-bottom:9px;white-space:nowrap;">
+        <input type="checkbox" ${a.recebida?'checked':''} onchange="atualizarLinhaAntecipacao(${idx},'recebida',this.checked)" style="width:15px;height:15px;">
+        Recebido
+      </label>
+      <button type="button" class="icone-btn perigo" title="Remover parcela" onclick="removerLinhaAntecipacao(${idx})" style="margin-bottom:6px;">${ICONE_X}</button>
+    </div>
+  `).join('');
+}
+function adicionarLinhaAntecipacao(){
+  antecipacoesBuilder.push({ valor:0, data:new Date().toISOString().slice(0,10), forma_pagamento:'', recebida:false });
+  renderizarListaAntecipacoes();
+}
+function removerLinhaAntecipacao(idx){ antecipacoesBuilder.splice(idx,1); renderizarListaAntecipacoes(); }
+function atualizarLinhaAntecipacao(idx, campo, valor){
+  antecipacoesBuilder[idx][campo] = campo==='valor' ? (Number(valor)||0) : (campo==='recebida' ? valor : valor);
+}
+async function salvarAntecipacoes(){
   const tipo = document.getElementById('antecipacao-tipo').value;
   const id = document.getElementById('antecipacao-registro-id').value;
   const tabela = tipo==='pedido' ? 'pedidos' : 'orcamentos';
-  const corpo = {
-    valor_antecipacao: Number(document.getElementById('ant-valor').value)||0,
-    data_antecipacao: document.getElementById('ant-data').value || null,
-    forma_pagamento_antecipacao: document.getElementById('ant-forma-pagamento').value || null,
-    antecipacao_recebida: document.getElementById('ant-recebida').checked,
-    atualizado_em: new Date().toISOString()
-  };
+  const parcelasValidas = antecipacoesBuilder.filter(a=>Number(a.valor)>0);
+  const corpo = { antecipacoes: parcelasValidas, atualizado_em: new Date().toISOString() };
   try{
     await sb(`${tabela}?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
     const lista = tipo==='pedido' ? estado.pedidos : estado.orcamentos;
     const registro = lista.find(x=>x.id===id);
     if(registro) Object.assign(registro, corpo);
-    notif('Antecipação salva','sucesso');
+    notif('Antecipações salvas','sucesso');
     fecharModal('modal-antecipacao');
     if(tipo==='pedido') renderizarPedidos(); else renderizarOrcamentos();
   }catch(e){ notif('Erro ao salvar: '+e.message,'erro'); }
-}
-async function removerAntecipacaoRapida(){
-  const tipo = document.getElementById('antecipacao-tipo').value;
-  const id = document.getElementById('antecipacao-registro-id').value;
-  const tabela = tipo==='pedido' ? 'pedidos' : 'orcamentos';
-  const corpo = { valor_antecipacao:null, data_antecipacao:null, forma_pagamento_antecipacao:null, antecipacao_recebida:false, atualizado_em:new Date().toISOString() };
-  try{
-    await sb(`${tabela}?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
-    const lista = tipo==='pedido' ? estado.pedidos : estado.orcamentos;
-    const registro = lista.find(x=>x.id===id);
-    if(registro) Object.assign(registro, corpo);
-    notif('Antecipação removida','sucesso');
-    fecharModal('modal-antecipacao');
-    if(tipo==='pedido') renderizarPedidos(); else renderizarOrcamentos();
-  }catch(e){ notif('Erro ao remover: '+e.message,'erro'); }
-}
-async function marcarAntecipacaoRecebida(tipo, id){
-  const tabela = tipo==='pedido' ? 'pedidos' : 'orcamentos';
-  const corpo = { antecipacao_recebida:true, atualizado_em:new Date().toISOString() };
-  try{
-    await sb(`${tabela}?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
-    const lista = tipo==='pedido' ? estado.pedidos : estado.orcamentos;
-    const registro = lista.find(x=>x.id===id);
-    if(registro) Object.assign(registro, corpo);
-    notif('Antecipação marcada como recebida','sucesso');
-    if(tipo==='pedido') renderizarPedidos(); else renderizarOrcamentos();
-  }catch(e){ notif('Erro ao atualizar: '+e.message,'erro'); }
 }
 function freteHtmlDe(o){
   const freteTipo = o?.tipo_frete || 'FOB';
@@ -4488,7 +4413,6 @@ function abrirModalOrcamento(id){
     document.getElementById('orcamento-tipo-frete').value = o.tipo_frete||'FOB';
     document.getElementById('orcamento-valor-frete').value = o.valor_frete||0;
     document.getElementById('orcamento-observacoes').value = o.observacoes||'';
-    preencherBlocoAntecipacao('orcamento', o);
     itensBuilder = itensDoOrcamento(o.id).map(i=>({
       produto_id:i.produto_id, quantidade:Number(i.quantidade), preco_unitario:Number(i.preco_unitario),
       cor_id:i.cor_id||'', espessura_id:i.espessura_id||'', tipo_pintura_id:i.tipo_pintura_id||'', tipo_isopor_id:i.tipo_isopor_id||''
@@ -4509,7 +4433,6 @@ function abrirModalOrcamento(id){
     document.getElementById('orcamento-tipo-frete').value='FOB';
     document.getElementById('orcamento-valor-frete').value=0;
     document.getElementById('orcamento-observacoes').value='';
-    preencherBlocoAntecipacao('orcamento', {});
     if(!podeVerTudo()) document.getElementById('orcamento-vendedor').value = estado.usuario.id;
     itensBuilder = [];
   }
@@ -4600,7 +4523,6 @@ async function salvarOrcamento(){
   const tipoFrete = document.getElementById('orcamento-tipo-frete').value;
   const valorFrete = tipoFrete==='CIF' ? (Number(document.getElementById('orcamento-valor-frete').value)||0) : 0;
   const total = Math.max(subtotal-desconto,0) + valorFrete;
-  const antecipacao = lerBlocoAntecipacao('orcamento');
   const corpoOrc = {
     cliente_nome_manual: clienteNomeManual,
     codigo_sistema: document.getElementById('orcamento-codigo-sistema').value.trim() || null,
@@ -4615,10 +4537,6 @@ async function salvarOrcamento(){
     tipo_frete: tipoFrete,
     valor_frete: valorFrete,
     desconto, subtotal, total,
-    valor_antecipacao: antecipacao.valor_antecipacao,
-    data_antecipacao: antecipacao.data_antecipacao,
-    forma_pagamento_antecipacao: antecipacao.forma_pagamento_antecipacao,
-    antecipacao_recebida: antecipacao.antecipacao_recebida,
     observacoes: document.getElementById('orcamento-observacoes').value || null
   };
   const numeroDigitado = document.getElementById('orcamento-numero').value.trim();
@@ -4819,60 +4737,20 @@ function renderizarPedidos(){
       </div></td></tr>`;
   }).join('');
 }
-function alternarBlocoAntecipacao(prefixo){
-  const bloco = document.getElementById(prefixo+'-bloco-antecipacao');
-  const btn = document.getElementById('btn-toggle-antecipacao-'+prefixo);
-  const mostrar = bloco.style.display === 'none';
-  bloco.style.display = mostrar ? 'block' : 'none';
-  btn.style.display = mostrar ? 'none' : '';
-}
-function removerBlocoAntecipacao(prefixo){
-  document.getElementById(prefixo+'-valor-antecipacao').value = '';
-  document.getElementById(prefixo+'-data-antecipacao').value = '';
-  document.getElementById(prefixo+'-forma-pagamento-antecipacao').value = '';
-  document.getElementById(prefixo+'-antecipacao-recebida').checked = false;
-  document.getElementById(prefixo+'-bloco-antecipacao').style.display = 'none';
-  document.getElementById('btn-toggle-antecipacao-'+prefixo).style.display = '';
-}
-function preencherBlocoAntecipacao(prefixo, obj){
-  document.getElementById(prefixo+'-valor-antecipacao').value = obj.valor_antecipacao||'';
-  document.getElementById(prefixo+'-data-antecipacao').value = obj.data_antecipacao||'';
-  document.getElementById(prefixo+'-forma-pagamento-antecipacao').value = obj.forma_pagamento_antecipacao||'';
-  document.getElementById(prefixo+'-antecipacao-recebida').checked = !!obj.antecipacao_recebida;
-  const temAntecipacao = !!(obj.valor_antecipacao || obj.data_antecipacao);
-  document.getElementById(prefixo+'-bloco-antecipacao').style.display = temAntecipacao ? 'block' : 'none';
-  document.getElementById('btn-toggle-antecipacao-'+prefixo).style.display = temAntecipacao ? 'none' : '';
-}
-function lerBlocoAntecipacao(prefixo){
-  const visivel = document.getElementById(prefixo+'-bloco-antecipacao').style.display !== 'none';
-  if(!visivel) return { valor_antecipacao:null, data_antecipacao:null, forma_pagamento_antecipacao:null, antecipacao_recebida:false };
-  return {
-    valor_antecipacao: Number(document.getElementById(prefixo+'-valor-antecipacao').value)||0,
-    data_antecipacao: document.getElementById(prefixo+'-data-antecipacao').value || null,
-    forma_pagamento_antecipacao: document.getElementById(prefixo+'-forma-pagamento-antecipacao').value || null,
-    antecipacao_recebida: document.getElementById(prefixo+'-antecipacao-recebida').checked
-  };
-}
 function abrirModalPedido(id){
   const p = estado.pedidos.find(x=>x.id===id);
   document.getElementById('pedido-id').value = p.id;
   document.getElementById('pedido-status').value = p.status;
   document.getElementById('pedido-previsao').value = p.previsao_entrega||'';
   document.getElementById('pedido-observacoes').value = p.observacoes||'';
-  preencherBlocoAntecipacao('pedido', p);
   abrirModal('modal-pedido');
 }
 async function salvarPedido(){
   const id = document.getElementById('pedido-id').value;
-  const antecipacao = lerBlocoAntecipacao('pedido');
   const corpo = {
     status: document.getElementById('pedido-status').value,
     previsao_entrega: document.getElementById('pedido-previsao').value || null,
     observacoes: document.getElementById('pedido-observacoes').value || null,
-    valor_antecipacao: antecipacao.valor_antecipacao,
-    data_antecipacao: antecipacao.data_antecipacao,
-    forma_pagamento_antecipacao: antecipacao.forma_pagamento_antecipacao,
-    antecipacao_recebida: antecipacao.antecipacao_recebida,
     atualizado_em: new Date().toISOString()
   };
   try{
