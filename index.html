@@ -837,6 +837,9 @@ tbody tr:hover{background:#FAFBFD;}
                   <option value="concluido">Concluído</option>
                   <option value="cancelado">Cancelado</option>
                 </select>
+                <select id="filtro-vendedor-pedido" onchange="renderizarPedidos()">
+                  <option value="">Todos os vendedores</option>
+                </select>
               </div>
             </div>
             <!-- Linha 2: filtros de período -->
@@ -858,10 +861,13 @@ tbody tr:hover{background:#FAFBFD;}
               <span id="ped-periodo-badge" style="font-size:11.5px;font-weight:700;color:var(--azul);margin-left:auto;"></span>
             </div>
           </div>
+
+          <div class="grade-kpi" id="ped-kpi-cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;"></div>
+
           <div class="tabela-wrap">
             <table>
               <thead><tr>
-                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Pedido em</th><th>Previsão</th><th>Valor</th><th>Status</th><th></th>
+                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Pedido em</th><th>Previsão</th><th>Frete</th><th>Cor</th><th>Valor</th><th>Status</th><th></th>
               </tr></thead>
               <tbody id="tbody-pedidos"></tbody>
             </table>
@@ -4045,6 +4051,22 @@ function renderizarOrcamentosKpiCards(lista){
     kpiCard('Quantidade de Orçamentos', lista.length, '') +
     kpiCard('Total de Frete (R$)', formatarMoeda(totalFrete), 'roxo');
 }
+function freteHtmlDe(o){
+  const freteTipo = o?.tipo_frete || 'FOB';
+  return freteTipo==='CIF'
+    ? `<span class="selo selo-azul" title="Frete por conta da empresa">CIF</span><div style="font-size:11px;color:var(--texto-suave);margin-top:3px;">${formatarMoeda(o.valor_frete||0)}</div>`
+    : `<span class="selo selo-cinza" title="Frete por conta do cliente">FOB</span>`;
+}
+function corHtmlDe(orcamentoId){
+  const coresItens = orcamentoId ? [...new Set(itensDoOrcamento(orcamentoId).map(i=>i.cor_nome).filter(Boolean))] : [];
+  return coresItens.length
+    ? coresItens.map(nomeCor=>{
+        const corCad = estado.cores.find(c=>c.nome===nomeCor);
+        const hex = corCad?.hex || '#CBD5E1';
+        return `<span title="${escapeHtml(nomeCor)}" style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;margin-right:6px;white-space:nowrap;"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.15);background:${hex};"></span>${escapeHtml(nomeCor)}</span>`;
+      }).join('')
+    : '<span style="color:var(--texto-suave);font-size:11.5px;">—</span>';
+}
 function renderizarOrcamentos(){
   inicializarFiltrosOrc();
   popularSelectVendedorOrcamento();
@@ -4071,18 +4093,8 @@ function renderizarOrcamentos(){
     const fuBadge = proxFu
       ? `<span title="Próx. contato: ${formatarData(proxFu)}" style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:${fuAtrasado?'var(--vermelho-claro)':fuHoje?'var(--amarelo-claro)':'var(--verde-claro)'};color:${fuAtrasado?'var(--vermelho)':fuHoje?'#A8770C':'var(--verde)'};">${fuAtrasado?'⚠️ Atrasado':fuHoje?'📅 Hoje':'✅ '+formatarData(proxFu)}</span>`
       : followups.length ? `<span style="font-size:11px;color:var(--texto-suave);">${followups.length}x</span>` : '—';
-    const freteTipo = o.tipo_frete || 'FOB';
-    const freteHtml = freteTipo==='CIF'
-      ? `<span class="selo selo-azul" title="Frete por conta da empresa">CIF</span><div style="font-size:11px;color:var(--texto-suave);margin-top:3px;">${formatarMoeda(o.valor_frete||0)}</div>`
-      : `<span class="selo selo-cinza" title="Frete por conta do cliente">FOB</span>`;
-    const coresItens = [...new Set(itensDoOrcamento(o.id).map(i=>i.cor_nome).filter(Boolean))];
-    const corHtml = coresItens.length
-      ? coresItens.map(nomeCor=>{
-          const corCad = estado.cores.find(c=>c.nome===nomeCor);
-          const hex = corCad?.hex || '#CBD5E1';
-          return `<span title="${escapeHtml(nomeCor)}" style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;margin-right:6px;white-space:nowrap;"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.15);background:${hex};"></span>${escapeHtml(nomeCor)}</span>`;
-        }).join('')
-      : '<span style="color:var(--texto-suave);font-size:11.5px;">—</span>';
+    const freteHtml = freteHtmlDe(o);
+    const corHtml = corHtmlDe(o.id);
     return `<tr>
       <td>#${o.numero}</td>
       <td>${escapeHtml(nomeClienteOrcamento(o))}</td>
@@ -4421,30 +4433,64 @@ function gerarPDFOrcamento(id){
 /* =====================================================================
    PEDIDOS
 ===================================================================== */
+function popularSelectVendedorPedido(){
+  const sel = document.getElementById('filtro-vendedor-pedido');
+  if(!sel) return;
+  const vendedores = filtrarPorPermissao(estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo));
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos os vendedores</option>' +
+    vendedores.map(v=>`<option value="${v.id}" ${v.id===atual?'selected':''}>${escapeHtml(v.nome)}</option>`).join('');
+}
+function renderizarPedidosKpiCards(lista){
+  const el = document.getElementById('ped-kpi-cards');
+  if(!el) return;
+  const totalValor = lista.reduce((s,p)=>s+Number(p.valor_total||0),0);
+  const totalFrete = lista.reduce((s,p)=>{
+    const orc = estado.orcamentos.find(o=>o.id===p.orcamento_id);
+    return s + Number(orc?.valor_frete||0);
+  },0);
+  const kpiCard = (rotulo, valor, cor='') => `<div class="cartao-kpi">
+      <div class="rotulo">${rotulo}</div>
+      <div class="valor ${cor}">${valor}</div>
+    </div>`;
+  el.innerHTML =
+    kpiCard('Total de Vendas (R$)', formatarMoeda(totalValor), 'azul') +
+    kpiCard('Quantidade de Pedidos', lista.length, '') +
+    kpiCard('Total de Frete (R$)', formatarMoeda(totalFrete), 'roxo');
+}
 function renderizarPedidos(){
   inicializarFiltrosPed();
+  popularSelectVendedorPedido();
   const termo = (document.getElementById('busca-pedidos').value||'').toLowerCase();
   const statusFiltro = document.getElementById('filtro-status-pedido').value;
+  const vendedorFiltro = document.getElementById('filtro-vendedor-pedido')?.value || '';
   let lista = filtrarPorPermissao(estado.pedidos);
   if(termo) lista = lista.filter(p=>nomeClientePedido(p).toLowerCase().includes(termo));
   if(statusFiltro) lista = lista.filter(p=>p.status===statusFiltro);
+  if(vendedorFiltro) lista = lista.filter(p=>p.vendedor_id===vendedorFiltro);
   lista = _filtrarPorPeriodo(lista, 'data_pedido', 'ped');
   _atualizarBadgePeriodo('ped-periodo-badge', 'ped');
+  renderizarPedidosKpiCards(lista);
   const corpo = document.getElementById('tbody-pedidos');
-  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="8"><div class="vazio">Nenhum pedido encontrado.</div></td></tr>`; return; }
-  corpo.innerHTML = lista.map(p=>`<tr>
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="10"><div class="vazio">Nenhum pedido encontrado.</div></td></tr>`; return; }
+  corpo.innerHTML = lista.map(p=>{
+    const orc = estado.orcamentos.find(o=>o.id===p.orcamento_id);
+    return `<tr>
       <td>#${p.numero}</td>
       <td>${escapeHtml(nomeClientePedido(p))}</td>
       <td>${escapeHtml(nomeUsuario(p.vendedor_id))}</td>
       <td>${formatarData(p.data_pedido)}</td>
       <td>${formatarData(p.previsao_entrega)}</td>
+      <td>${freteHtmlDe(orc||{})}</td>
+      <td>${corHtmlDe(p.orcamento_id)}</td>
       <td><strong>${formatarMoeda(p.valor_total)}</strong></td>
       <td><span class="selo ${SELO_STATUS_PED[p.status]}">${ROTULO_STATUS_PED[p.status]}</span></td>
       <td><div class="acoes-linha">
         <button class="icone-btn" title="Atualizar" onclick="abrirModalPedido('${p.id}')">${ICONE_EDITAR}</button>
         <button class="icone-btn reverter" title="Reverter orçamento para rascunho" onclick="reverterPedidoParaRascunho('${p.id}')">${ICONE_REVERTER}</button>
         ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="excluirPedido('${p.id}')">${ICONE_LIXEIRA}</button>`:''}
-      </div></td></tr>`).join('');
+      </div></td></tr>`;
+  }).join('');
 }
 function abrirModalPedido(id){
   const p = estado.pedidos.find(x=>x.id===id);
