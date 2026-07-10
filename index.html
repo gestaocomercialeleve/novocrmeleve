@@ -745,6 +745,9 @@ tbody tr:hover{background:#FAFBFD;}
                   <option value="em_andamento">Em Andamento</option>
                   <option value="aprovado">Aprovado</option>
                 </select>
+                <select id="filtro-vendedor-orcamento" onchange="renderizarOrcamentos()">
+                  <option value="">Todos os vendedores</option>
+                </select>
               </div>
               <button class="btn btn-primario" onclick="abrirModalOrcamento()">+ Novo Orçamento</button>
             </div>
@@ -767,6 +770,9 @@ tbody tr:hover{background:#FAFBFD;}
               <span id="orc-periodo-badge" style="font-size:11.5px;font-weight:700;color:var(--azul);margin-left:auto;"></span>
             </div>
           </div>
+
+          <div class="grade-kpi" id="orc-kpi-cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;"></div>
+
           <div class="tabela-wrap">
             <table>
               <thead><tr>
@@ -4017,16 +4023,42 @@ function limparFiltrosPeriodoPed(){
   renderizarPedidos();
 }
 
+function popularSelectVendedorOrcamento(){
+  const sel = document.getElementById('filtro-vendedor-orcamento');
+  if(!sel) return;
+  const vendedores = filtrarPorPermissao(estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo));
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos os vendedores</option>' +
+    vendedores.map(v=>`<option value="${v.id}" ${v.id===atual?'selected':''}>${escapeHtml(v.nome)}</option>`).join('');
+}
+function renderizarOrcamentosKpiCards(lista){
+  const el = document.getElementById('orc-kpi-cards');
+  if(!el) return;
+  const totalValor = lista.reduce((s,o)=>s+Number(o.total||0),0);
+  const totalFrete = lista.reduce((s,o)=>s+Number(o.valor_frete||0),0);
+  const kpiCard = (rotulo, valor, cor='') => `<div class="cartao-kpi">
+      <div class="rotulo">${rotulo}</div>
+      <div class="valor ${cor}">${valor}</div>
+    </div>`;
+  el.innerHTML =
+    kpiCard('Total de Vendas (R$)', formatarMoeda(totalValor), 'azul') +
+    kpiCard('Quantidade de Orçamentos', lista.length, '') +
+    kpiCard('Total de Frete (R$)', formatarMoeda(totalFrete), 'roxo');
+}
 function renderizarOrcamentos(){
   inicializarFiltrosOrc();
+  popularSelectVendedorOrcamento();
   const termo = (document.getElementById('busca-orcamentos').value||'').toLowerCase();
   const statusFiltro = document.getElementById('filtro-status-orcamento').value;
+  const vendedorFiltro = document.getElementById('filtro-vendedor-orcamento')?.value || '';
   let lista = filtrarPorPermissao(estado.orcamentos)
     .filter(o=>o.status!=='reprovado' && !(o.status==='aprovado' && pedidoExisteParaOrcamento(o.id)));
   if(termo) lista = lista.filter(o=>nomeClienteOrcamento(o).toLowerCase().includes(termo));
   if(statusFiltro) lista = lista.filter(o=>o.status===statusFiltro);
+  if(vendedorFiltro) lista = lista.filter(o=>o.vendedor_id===vendedorFiltro);
   lista = _filtrarPorPeriodo(lista, 'data_orcamento', 'orc');
   _atualizarBadgePeriodo('orc-periodo-badge', 'orc');
+  renderizarOrcamentosKpiCards(lista);
   const corpo = document.getElementById('tbody-orcamentos');
   if(!lista.length){ corpo.innerHTML = `<tr><td colspan="12"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(o=>{
