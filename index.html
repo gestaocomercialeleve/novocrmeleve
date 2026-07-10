@@ -151,6 +151,20 @@ input,select,textarea{font-family:inherit;}
 
 /* ===================== COMPONENTES GERAIS ===================== */
 .grade-kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:22px;}
+.calendario-antecipacoes-grade{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.cal-ant-cabecalho-dia{font-size:11.5px;font-weight:700;color:var(--texto-suave);text-align:center;padding:4px 0 8px;}
+.cal-ant-dia{background:var(--branco);border:1px solid var(--borda);border-radius:10px;min-height:96px;padding:7px 8px;display:flex;flex-direction:column;gap:4px;}
+.cal-ant-dia.fora-mes{background:#F7F8FA;}
+.cal-ant-dia.fora-mes .numero-dia{color:var(--texto-suave);}
+.cal-ant-dia.hoje{border:1.5px solid var(--azul);box-shadow:0 0 0 2px rgba(47,93,160,.12);}
+.cal-ant-dia .numero-dia{font-size:12px;font-weight:700;color:var(--texto);margin-bottom:2px;}
+.cal-ant-chip{font-size:10.5px;padding:3px 6px;border-radius:6px;cursor:pointer;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:none;text-align:left;width:100%;display:block;}
+.cal-ant-chip:hover{filter:brightness(0.95);}
+@media(max-width:980px){
+  .calendario-antecipacoes-grade{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+  .cal-ant-dia{min-height:70px;padding:4px;}
+  .cal-ant-chip{font-size:9px;padding:2px 4px;}
+}
 .cartao-kpi{
   background:var(--branco);border:1px solid var(--borda);border-radius:14px;
   padding:18px 18px;box-shadow:var(--sombra);
@@ -890,6 +904,27 @@ tbody tr:hover{background:#FAFBFD;}
           </div>
         </section>
 
+        <!-- ============================== CALENDÁRIO DE ANTECIPAÇÕES ============================== -->
+        <section class="pagina" id="pagina-calendario-antecipacoes">
+          <div class="cabecalho-sticky-lista">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <button class="btn btn-sm btn-fantasma" onclick="mudarMesCalendarioAntecipacoes(-1)">‹ Anterior</button>
+                <div id="cal-ant-titulo-mes" style="font-size:16px;font-weight:700;min-width:170px;text-align:center;"></div>
+                <button class="btn btn-sm btn-fantasma" onclick="mudarMesCalendarioAntecipacoes(1)">Próximo ›</button>
+              </div>
+              <button class="btn btn-sm btn-fantasma" onclick="irParaHojeCalendarioAntecipacoes()">📍 Hoje</button>
+            </div>
+            <div class="grade-kpi" id="cal-ant-kpi-cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;"></div>
+          </div>
+          <div id="cal-ant-legenda" style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--texto-suave);margin-bottom:10px;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--verde);margin-right:5px;"></span>Recebida</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--vermelho);margin-right:5px;"></span>Vencida / pendente</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--azul);margin-right:5px;"></span>A vencer</span>
+          </div>
+          <div id="cal-ant-grade" class="calendario-antecipacoes-grade"></div>
+        </section>
+
         <!-- ============================== USUÁRIOS ============================== -->
         <section class="pagina" id="pagina-usuarios">
           <div class="barra-acoes">
@@ -1397,6 +1432,7 @@ const ITENS_NAV = [
   {id:'orcamentos', rotulo:'Orçamentos', descricao:'Monte, envie e acompanhe propostas', icone:ICONE_ORCAMENTOS, perfis:['admin','gerente','vendedor']},
   {id:'orcamentos_reprovados', rotulo:'Orçamentos Reprovados', descricao:'Propostas reprovadas pelo cliente', icone:ICONE_X, perfis:['admin','gerente','vendedor']},
   {id:'pedidos', rotulo:'Pedidos', descricao:'Status de produção e entrega', icone:ICONE_PEDIDOS, perfis:['admin','gerente','vendedor']},
+  {id:'calendario-antecipacoes', rotulo:'Antecipações', descricao:'Calendário de antecipações lançadas em orçamentos e pedidos', icone:'📅', perfis:['admin','gerente','vendedor']},
   {id:'cadastros', rotulo:'Cadastros', descricao:'Origem, pintura, cor, espessura e isopor', icone:ICONE_CADASTROS, perfis:['admin','gerente']},
   {id:'config-metas', rotulo:'Config. Metas', descricao:'Defina metas mensais e distribua por vendedor', icone:ICONE_METAS, perfis:['admin','gerente']},
   {id:'usuarios', rotulo:'Usuários', descricao:'Gestão de usuários e permissões', icone:ICONE_USUARIOS, perfis:['admin']},
@@ -1638,6 +1674,7 @@ function navegarPagina(pagina){
   if(pagina==='orcamentos') renderizarOrcamentos();
   if(pagina==='orcamentos_reprovados') renderizarOrcamentosReprovados();
   if(pagina==='pedidos') renderizarPedidos();
+  if(pagina==='calendario-antecipacoes') renderizarCalendarioAntecipacoes();
   if(pagina==='cadastros') renderizarCadastros();
   if(pagina==='usuarios') renderizarUsuarios();
   if(pagina==='permissoes') renderizarPermissoes();
@@ -4288,7 +4325,111 @@ async function salvarAntecipacoes(){
     notif('Antecipações salvas','sucesso');
     fecharModal('modal-antecipacao');
     if(tipo==='pedido') renderizarPedidos(); else renderizarOrcamentos();
+    if(estado.paginaAtual==='calendario-antecipacoes') renderizarCalendarioAntecipacoes();
   }catch(e){ notif('Erro ao salvar: '+e.message,'erro'); }
+}
+/* =====================================================================
+   CALENDÁRIO DE ANTECIPAÇÕES
+===================================================================== */
+let calAntAno, calAntMes; // mês exibido no calendário (calAntMes: 0-11)
+function obterTodasAntecipacoes(){
+  const itens = [];
+  filtrarPorPermissao(estado.orcamentos).forEach(o=>{
+    (Array.isArray(o.antecipacoes)?o.antecipacoes:[]).forEach((a,idx)=>{
+      itens.push({...a, tipo:'orcamento', registroId:o.id, numero:o.numero, nomeCliente:nomeClienteOrcamento(o), idxParcela:idx});
+    });
+  });
+  filtrarPorPermissao(estado.pedidos).forEach(p=>{
+    (Array.isArray(p.antecipacoes)?p.antecipacoes:[]).forEach((a,idx)=>{
+      itens.push({...a, tipo:'pedido', registroId:p.id, numero:p.numero, nomeCliente:nomeClientePedido(p), idxParcela:idx});
+    });
+  });
+  return itens;
+}
+function irParaHojeCalendarioAntecipacoes(){
+  const hoje = new Date();
+  calAntAno = hoje.getFullYear();
+  calAntMes = hoje.getMonth();
+  renderizarCalendarioAntecipacoes();
+}
+function mudarMesCalendarioAntecipacoes(delta){
+  calAntMes += delta;
+  if(calAntMes < 0){ calAntMes = 11; calAntAno--; }
+  if(calAntMes > 11){ calAntMes = 0; calAntAno++; }
+  renderizarCalendarioAntecipacoes();
+}
+function renderizarCalendarioAntecipacoes(){
+  if(calAntAno === undefined){
+    const hoje = new Date();
+    calAntAno = hoje.getFullYear();
+    calAntMes = hoje.getMonth();
+  }
+  const NOMES_MES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('cal-ant-titulo-mes').textContent = `${NOMES_MES[calAntMes]} de ${calAntAno}`;
+
+  const todasAntecipacoes = obterTodasAntecipacoes();
+  const hojeStr = new Date().toISOString().slice(0,10);
+  const prefixoMes = `${calAntAno}-${String(calAntMes+1).padStart(2,'0')}`;
+  const doMes = todasAntecipacoes.filter(a=>a.data && a.data.startsWith(prefixoMes));
+
+  // KPIs do mês
+  const totalMes = doMes.reduce((s,a)=>s+Number(a.valor||0),0);
+  const recebidoMes = doMes.filter(a=>a.recebida).reduce((s,a)=>s+Number(a.valor||0),0);
+  const pendenteMes = totalMes - recebidoMes;
+  const kpiCard = (rotulo, valor, cor='') => `<div class="cartao-kpi"><div class="rotulo">${rotulo}</div><div class="valor ${cor}">${valor}</div></div>`;
+  document.getElementById('cal-ant-kpi-cards').innerHTML =
+    kpiCard('Total do Mês', formatarMoeda(totalMes), 'azul') +
+    kpiCard('Recebido', formatarMoeda(recebidoMes), 'verde') +
+    kpiCard('Pendente', formatarMoeda(pendenteMes), pendenteMes>0?'vermelho':'');
+
+  // Agrupa por dia (YYYY-MM-DD) para desenhar a grade
+  const porDia = {};
+  todasAntecipacoes.forEach(a=>{
+    if(!a.data) return;
+    if(!porDia[a.data]) porDia[a.data] = [];
+    porDia[a.data].push(a);
+  });
+
+  const primeiroDiaMes = new Date(calAntAno, calAntMes, 1);
+  const diaSemanaInicio = primeiroDiaMes.getDay(); // 0=Dom
+  const diasNoMes = new Date(calAntAno, calAntMes+1, 0).getDate();
+  const diasNoMesAnterior = new Date(calAntAno, calAntMes, 0).getDate();
+
+  const celulas = [];
+  // Dias do mês anterior para completar a primeira semana
+  for(let i=diaSemanaInicio-1; i>=0; i--){
+    celulas.push({ dia: diasNoMesAnterior-i, foraDoMes:true, dataStr:null });
+  }
+  // Dias do mês atual
+  for(let d=1; d<=diasNoMes; d++){
+    const dataStr = `${calAntAno}-${String(calAntMes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    celulas.push({ dia:d, foraDoMes:false, dataStr });
+  }
+  // Completa a última semana com dias do próximo mês
+  while(celulas.length % 7 !== 0){
+    celulas.push({ dia: celulas.length - (diaSemanaInicio+diasNoMes) + 1, foraDoMes:true, dataStr:null });
+  }
+
+  const NOMES_DIA_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html = NOMES_DIA_SEMANA.map(n=>`<div class="cal-ant-cabecalho-dia">${n}</div>`).join('');
+  html += celulas.map(c=>{
+    const itensDia = c.dataStr ? (porDia[c.dataStr]||[]) : [];
+    const ehHoje = c.dataStr === hojeStr;
+    const chips = itensDia.slice(0,3).map(a=>{
+      const venceu = !a.recebida && a.data <= hojeStr;
+      const cor = a.recebida ? 'var(--verde)' : venceu ? 'var(--vermelho)' : 'var(--azul)';
+      const rotuloTipo = a.tipo==='pedido' ? 'Pedido' : 'Orç.';
+      return `<button class="cal-ant-chip" style="background:${cor};color:#fff;" title="${rotuloTipo} #${a.numero} — ${escapeHtml(a.nomeCliente)} — ${formatarMoeda(a.valor)}" onclick="abrirModalAntecipacao('${a.tipo}','${a.registroId}')">${rotuloTipo} #${a.numero} · ${formatarMoeda(a.valor)}</button>`;
+    }).join('');
+    const maisTexto = itensDia.length>3 ? `<div style="font-size:10px;color:var(--texto-suave);">+${itensDia.length-3} outra(s)</div>` : '';
+    return `<div class="cal-ant-dia ${c.foraDoMes?'fora-mes':''} ${ehHoje?'hoje':''}">
+        <div class="numero-dia">${c.dia}</div>
+        ${chips}
+        ${maisTexto}
+      </div>`;
+  }).join('');
+
+  document.getElementById('cal-ant-grade').innerHTML = html;
 }
 function freteHtmlDe(o){
   const freteTipo = o?.tipo_frete || 'FOB';
@@ -4802,6 +4943,7 @@ const PAGINAS_DISPONIVEIS_VENDEDOR = [
   {id:'orcamentos', rotulo:'Orçamentos',      icone:'📄'},
   {id:'orcamentos_reprovados', rotulo:'Orçamentos Reprovados', icone:'🚫'},
   {id:'pedidos',    rotulo:'Pedidos',         icone:'🚚'},
+  {id:'calendario-antecipacoes', rotulo:'Antecipações', icone:'📅'},
   {id:'analises',   rotulo:'Análises',        icone:'📈'},
 ];
 
@@ -4812,7 +4954,7 @@ function carregarPermissoesVendedor(vendedorId){
   }catch(e){}
   // Padrão: acesso às páginas básicas, ver apenas os próprios
   return {
-    paginas: ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos'],
+    paginas: ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos','calendario-antecipacoes'],
     verTodosClientes: false,
   };
 }
@@ -4824,7 +4966,7 @@ function salvarPermissoesVendedor(vendedorId, cfg){
 function obterPaginasVendedor(vendedorId){
   if(podeVerTudo()) return PAGINAS_DISPONIVEIS_VENDEDOR.map(p=>p.id);
   const cfg = carregarPermissoesVendedor(vendedorId);
-  return cfg.paginas || ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos'];
+  return cfg.paginas || ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos','calendario-antecipacoes'];
 }
 
 function vendedorPodeVerPagina(vendedorId, paginaId){
