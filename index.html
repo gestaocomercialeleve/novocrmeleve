@@ -770,7 +770,7 @@ tbody tr:hover{background:#FAFBFD;}
           <div class="tabela-wrap">
             <table>
               <thead><tr>
-                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Lead Time</th><th>Total</th><th>Status</th><th>Follow-up</th><th></th>
+                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Lead Time</th><th>Frete</th><th>Cor</th><th>Total</th><th>Status</th><th>Follow-up</th><th></th>
               </tr></thead>
               <tbody id="tbody-orcamentos"></tbody>
             </table>
@@ -1518,19 +1518,15 @@ async function iniciarApp(){
   construirNavLateral();
   try{
     await carregarDadosIniciais();
-    // Carrega config de metas do mês atual (chave anual nova ou chave antiga)
+    // Carrega config de metas do mês atual (agora compartilhada via Supabase)
   const _hj = new Date();
   const _anoAtual = _hj.getFullYear();
   const _mesAtual = _hj.getMonth()+1;
-  const _cfgAnual = (() => { try{ const r=localStorage.getItem('cfg_metas_ano_'+_anoAtual); return r?JSON.parse(r):null; }catch(e){return null;} })();
+  const _cfgAnual = carregarCfgAno(_anoAtual);
+  estado.configMetas = {};
   if(_cfgAnual && _cfgAnual[_mesAtual]){
-    estado.configMetas = {};
     const _cfgMes = _cfgAnual[_mesAtual];
     Object.keys(_cfgMes).forEach(k=>{ if(!k.startsWith('_') && _cfgMes[k]?.metaDiaria !== undefined) estado.configMetas[k] = _cfgMes[k].metaDiaria; });
-  } else {
-    // Fallback chave antiga
-    const _cfgAntiga = (() => { try{ const r=localStorage.getItem('cfg_metas_'+_anoAtual+'_'+_mesAtual); return r?JSON.parse(r):null; }catch(e){return null;} })();
-    if(_cfgAntiga){ estado.configMetas = {}; Object.keys(_cfgAntiga).forEach(k=>{ if(!k.startsWith('_') && _cfgAntiga[k]?.metaDiaria !== undefined) estado.configMetas[k] = _cfgAntiga[k].metaDiaria; }); }
   }
   navegarPagina('dashboard');
   }catch(e){ notif('Erro ao carregar dados: '+e.message, 'erro'); }
@@ -1613,6 +1609,16 @@ async function carregarDadosIniciais(){
   estado.tiposIsopor = tiposIsopor || [];
   estado.cidades = cidades || [];
   estado.motivosReprovacao = motivosReprovacao || [];
+
+  // Config de metas: agora fica na tabela config_metas (compartilhada entre todos
+  // os usuários e dispositivos). Se a tabela ainda não existir no Supabase, não
+  // interrompe o carregamento do resto do sistema — apenas fica vazia.
+  estado.configMetasPorAno = {};
+  try{
+    const configMetasRows = await sb('config_metas?select=*');
+    (configMetasRows||[]).forEach(row=>{ estado.configMetasPorAno[row.ano] = row.dados || {}; });
+  }catch(e){ /* tabela ainda não criada — ver instruções de migração */ }
+  await migrarMetasLocalStorageSeNecessario();
 }
 
 /* =====================================================================
@@ -1659,7 +1665,7 @@ function svgGauge(pct, cor, tamanho=110){
 function renderizarRelogiosMeta(){
   const { anoFiltro, mesFiltro } = obterFiltroDashboard();
   const ano = anoFiltro;
-  const cfgAnual = (() => { try{ const r=localStorage.getItem('cfg_metas_ano_'+ano); return r?JSON.parse(r):{}; }catch(e){return {};} })();
+  const cfgAnual = carregarCfgAno(ano);
 
   let metaTotalMes = 0;
   let rows = [];
@@ -2426,14 +2432,9 @@ function metaDiariaVendedor(vendedorId, dataStr){
   } else {
     const hj = new Date(); ano = hj.getFullYear(); mes = hj.getMonth()+1;
   }
-  try{
-    const cfgAnual = JSON.parse(localStorage.getItem('cfg_metas_ano_'+ano)||'{}');
-    if(cfgAnual[mes] && cfgAnual[mes][vendedorId] && cfgAnual[mes][vendedorId].metaDiaria !== undefined)
-      return Number(cfgAnual[mes][vendedorId].metaDiaria) || 0;
-    const cfgAntiga = JSON.parse(localStorage.getItem('cfg_metas_'+ano+'_'+mes)||'{}');
-    if(cfgAntiga[vendedorId] && cfgAntiga[vendedorId].metaDiaria !== undefined)
-      return Number(cfgAntiga[vendedorId].metaDiaria) || 0;
-  }catch(e){}
+  const cfgAnual = carregarCfgAno(ano);
+  if(cfgAnual[mes] && cfgAnual[mes][vendedorId] && cfgAnual[mes][vendedorId].metaDiaria !== undefined)
+    return Number(cfgAnual[mes][vendedorId].metaDiaria) || 0;
   const u = estado.usuarios.find(u=>u.id===vendedorId);
   return u ? Number(u.meta_diaria||0) : 0;
 }
@@ -2443,10 +2444,8 @@ function rowsMetasPorData(dataStr){
   let ano, mes;
   if(dataStr){ const p=dataStr.split('-'); ano=Number(p[0]); mes=Number(p[1]); }
   else { const hj=new Date(); ano=hj.getFullYear(); mes=hj.getMonth()+1; }
-  try{
-    const cfgAnual = JSON.parse(localStorage.getItem('cfg_metas_ano_'+ano)||'{}');
-    if(cfgAnual[mes] && cfgAnual[mes]._rows) return cfgAnual[mes]._rows.map(r=>({ ...r, metaDiaria: cfgAnual[mes][r.id]?.metaDiaria||0 }));
-  }catch(e){}
+  const cfgAnual = carregarCfgAno(ano);
+  if(cfgAnual[mes] && cfgAnual[mes]._rows) return cfgAnual[mes]._rows.map(r=>({ ...r, metaDiaria: cfgAnual[mes][r.id]?.metaDiaria||0 }));
   return null; // null = usar lista do sistema
 }
 
@@ -2634,22 +2633,57 @@ function parseMoedaBR(str){
 function formatarMoedaInput(v){
   return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+// Fonte única de verdade: estado.configMetasPorAno (carregado da tabela
+// config_metas do Supabase em carregarDadosIniciais). Isso garante que as
+// metas configuradas por um usuário apareçam para todos os outros, em
+// qualquer dispositivo/navegador — antes ficavam presas no localStorage
+// de quem configurou.
 function carregarCfgAno(ano){
-  try{ const r = localStorage.getItem('cfg_metas_ano_'+ano); return r ? JSON.parse(r) : {}; }catch(e){ return {}; }
+  return (estado.configMetasPorAno && estado.configMetasPorAno[ano]) ? estado.configMetasPorAno[ano] : {};
 }
-function salvarCfgAno(ano, dados){
-  try{ localStorage.setItem('cfg_metas_ano_'+ano, JSON.stringify(dados)); }catch(e){}
-}
-// Compatibilidade: carrega config por mês (chave antiga) se existir
-function carregarConfigMetasLocal(mes, ano){
+async function salvarCfgAno(ano, dados){
+  if(!estado.configMetasPorAno) estado.configMetasPorAno = {};
+  estado.configMetasPorAno[ano] = dados;
   try{
-    // Tenta nova chave anual primeiro
-    const anoData = carregarCfgAno(ano);
-    if(anoData[mes]) return anoData[mes];
-    // Fallback: chave antiga por mês
-    const r = localStorage.getItem('cfg_metas_'+ano+'_'+mes);
-    return r ? JSON.parse(r) : null;
-  }catch(e){ return null; }
+    await sb('config_metas?on_conflict=ano', {
+      metodo:'POST', corpo:{ ano, dados, atualizado_em:new Date().toISOString() },
+      cabecalhos:{ Prefer:'resolution=merge-duplicates,return=minimal' }
+    });
+  }catch(e){
+    notif('Não foi possível sincronizar as metas com o servidor ('+e.message+'). Elas foram salvas apenas neste navegador até a conexão ser restabelecida.','erro');
+    try{ localStorage.setItem('cfg_metas_ano_'+ano, JSON.stringify(dados)); }catch(err){}
+  }
+}
+// Migração única: se este navegador já tinha metas configuradas em localStorage
+// (versão antiga do sistema) e ainda não existem na tabela compartilhada do
+// Supabase, envia essas metas para o servidor para que passem a ser visíveis
+// para todos. Roda automaticamente a cada login; não faz nada se não houver
+// nada para migrar.
+async function migrarMetasLocalStorageSeNecessario(){
+  let chaves = [];
+  try{ chaves = Object.keys(localStorage); }catch(e){ return; }
+  const porAno = {}; // ano -> dados (mesclando chaves anuais e antigas por mês)
+  chaves.forEach(chave=>{
+    let m = chave.match(/^cfg_metas_ano_(\d+)$/);
+    if(m){
+      try{ porAno[m[1]] = { ...(porAno[m[1]]||{}), ...JSON.parse(localStorage.getItem(chave)||'{}') }; }catch(e){}
+      return;
+    }
+    m = chave.match(/^cfg_metas_(\d+)_(\d+)$/);
+    if(m){
+      const [, anoAntigo, mesAntigo] = m;
+      try{
+        const dadosMes = JSON.parse(localStorage.getItem(chave)||'{}');
+        porAno[anoAntigo] = porAno[anoAntigo] || {};
+        if(!porAno[anoAntigo][mesAntigo]) porAno[anoAntigo][mesAntigo] = dadosMes;
+      }catch(e){}
+    }
+  });
+  for(const ano of Object.keys(porAno)){
+    const jaTemNoServidor = estado.configMetasPorAno[ano] && Object.keys(estado.configMetasPorAno[ano]).length;
+    if(jaTemNoServidor) continue; // servidor já tem dados para este ano — não sobrescreve
+    try{ await salvarCfgAno(Number(ano), porAno[ano]); }catch(e){}
+  }
 }
 
 /* --- renderização --- */
@@ -2879,7 +2913,7 @@ function recalcularTodosMeses(){
   for(let m=1; m<=12; m++) recalcularMes(m);
 }
 
-function salvarConfigMetas(){
+async function salvarConfigMetas(){
   const selAno = document.getElementById('cfg-ano');
   if(!selAno) return;
   const ano = Number(selAno.value);
@@ -2932,7 +2966,7 @@ function salvarConfigMetas(){
     return;
   }
 
-  salvarCfgAno(ano, cfgAno);
+  await salvarCfgAno(ano, cfgAno);
 
   // Atualiza estado.configMetas para o mês atual
   const hoje = new Date();
@@ -2946,7 +2980,7 @@ function salvarConfigMetas(){
     }
   }
 
-  notif('Metas de ' + ano + ' salvas com sucesso!','sucesso');
+  notif('Metas de ' + ano + ' salvas com sucesso! Já ficam visíveis para todos os usuários.','sucesso');
 }
 
 
@@ -3441,6 +3475,11 @@ async function salvarLead(){
     observacoes: document.getElementById('lead-observacoes').value || null,
     atualizado_em: new Date().toISOString()
   };
+  // Garante que todo lead novo tenha data de criação preenchida pelo próprio
+  // sistema — o Dashboard, o Funil e as Análises filtram tudo por esse campo,
+  // então se ele ficar vazio (por exemplo, por não haver um valor padrão
+  // configurado na tabela do banco) o lead simplesmente some desses gráficos.
+  if(!id) corpo.criado_em = new Date().toISOString();
   try{
     if(id) await sb(`leads?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
     else await sb('leads', {metodo:'POST', corpo, cabecalhos:{Prefer:'return=minimal'}});
@@ -3989,7 +4028,7 @@ function renderizarOrcamentos(){
   lista = _filtrarPorPeriodo(lista, 'data_orcamento', 'orc');
   _atualizarBadgePeriodo('orc-periodo-badge', 'orc');
   const corpo = document.getElementById('tbody-orcamentos');
-  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="10"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="12"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(o=>{
     const followups = carregarFollowUps('orcamento', o.id);
     const ultimoFu = followups.length ? followups[followups.length-1] : null;
@@ -4000,6 +4039,18 @@ function renderizarOrcamentos(){
     const fuBadge = proxFu
       ? `<span title="Próx. contato: ${formatarData(proxFu)}" style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:${fuAtrasado?'var(--vermelho-claro)':fuHoje?'var(--amarelo-claro)':'var(--verde-claro)'};color:${fuAtrasado?'var(--vermelho)':fuHoje?'#A8770C':'var(--verde)'};">${fuAtrasado?'⚠️ Atrasado':fuHoje?'📅 Hoje':'✅ '+formatarData(proxFu)}</span>`
       : followups.length ? `<span style="font-size:11px;color:var(--texto-suave);">${followups.length}x</span>` : '—';
+    const freteTipo = o.tipo_frete || 'FOB';
+    const freteHtml = freteTipo==='CIF'
+      ? `<span class="selo selo-azul" title="Frete por conta da empresa">CIF</span><div style="font-size:11px;color:var(--texto-suave);margin-top:3px;">${formatarMoeda(o.valor_frete||0)}</div>`
+      : `<span class="selo selo-cinza" title="Frete por conta do cliente">FOB</span>`;
+    const coresItens = [...new Set(itensDoOrcamento(o.id).map(i=>i.cor_nome).filter(Boolean))];
+    const corHtml = coresItens.length
+      ? coresItens.map(nomeCor=>{
+          const corCad = estado.cores.find(c=>c.nome===nomeCor);
+          const hex = corCad?.hex || '#CBD5E1';
+          return `<span title="${escapeHtml(nomeCor)}" style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;margin-right:6px;white-space:nowrap;"><span style="display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.15);background:${hex};"></span>${escapeHtml(nomeCor)}</span>`;
+        }).join('')
+      : '<span style="color:var(--texto-suave);font-size:11.5px;">—</span>';
     return `<tr>
       <td>#${o.numero}</td>
       <td>${escapeHtml(nomeClienteOrcamento(o))}</td>
@@ -4007,6 +4058,8 @@ function renderizarOrcamentos(){
       <td>${formatarData(o.data_orcamento)}</td>
       <td>${formatarData(o.validade)}</td>
       <td>${leadTimeBadge(o.data_orcamento)}</td>
+      <td>${freteHtml}</td>
+      <td>${corHtml}</td>
       <td><strong>${formatarMoeda(o.total)}</strong></td>
       <td>
         <select class="select-status-inline ${SELO_STATUS_ORC[o.status]}" onchange="mudarStatusOrcamentoInline('${o.id}', this.value, this)">
