@@ -20,6 +20,7 @@
   --texto-suave:#5B6472;
   --borda:#E3E8F0;
   --fundo:#F4F6FA;
+  --topo-altura:68px;
   --branco:#FFFFFF;
   --verde:#1F9D55;
   --verde-claro:#E7F7EE;
@@ -145,6 +146,7 @@ input,select,textarea{font-family:inherit;}
 .miolo{padding:24px 28px 60px;flex:1;}
 .pagina{display:none;}
 .pagina.ativa{display:block;animation:surgir .25s ease;}
+.cabecalho-sticky-lista{position:sticky;top:var(--topo-altura,68px);z-index:30;background:var(--fundo);padding-top:2px;padding-bottom:10px;border-bottom:1px solid var(--borda);}
 @keyframes surgir{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
 /* ===================== COMPONENTES GERAIS ===================== */
@@ -452,7 +454,13 @@ tbody tr:hover{background:#FAFBFD;}
             </div>
           </div>
           <div class="painel" style="margin-bottom:16px;">
-            <h3>Orçado x Convertido em Pedido (Jan – Dez)</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+              <h3 style="margin:0;">Orçado x Convertido em Pedido (Jan – Dez)</h3>
+              <div style="display:flex;gap:6px;">
+                <button type="button" class="btn btn-sm btn-primario" id="btn-orcconv-valor" onclick="alternarModoGraficoOrcadoConvertido('valor')">R$</button>
+                <button type="button" class="btn btn-sm btn-fantasma" id="btn-orcconv-pct" onclick="alternarModoGraficoOrcadoConvertido('percentual')">%</button>
+              </div>
+            </div>
             <canvas id="grafico-orcado-convertido"></canvas>
           </div>
           <div class="grade-graficos" id="linha-graficos-3">
@@ -737,6 +745,7 @@ tbody tr:hover{background:#FAFBFD;}
 
         <!-- ============================== ORÇAMENTOS ============================== -->
         <section class="pagina" id="pagina-orcamentos">
+          <div class="cabecalho-sticky-lista">
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
             <!-- Linha 1: busca + status + novo -->
             <div class="barra-acoes" style="margin-bottom:0;">
@@ -776,6 +785,7 @@ tbody tr:hover{background:#FAFBFD;}
           </div>
 
           <div class="grade-kpi" id="orc-kpi-cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;"></div>
+          </div>
 
           <div class="tabela-wrap">
             <table>
@@ -828,6 +838,7 @@ tbody tr:hover{background:#FAFBFD;}
 
         <!-- ============================== PEDIDOS ============================== -->
         <section class="pagina" id="pagina-pedidos">
+          <div class="cabecalho-sticky-lista">
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
             <!-- Linha 1: busca + status -->
             <div class="barra-acoes" style="margin-bottom:0;">
@@ -867,6 +878,7 @@ tbody tr:hover{background:#FAFBFD;}
           </div>
 
           <div class="grade-kpi" id="ped-kpi-cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;"></div>
+          </div>
 
           <div class="tabela-wrap">
             <table>
@@ -1350,6 +1362,7 @@ const ICONE_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" str
 ===================================================================== */
 let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], origensLead:[], tiposPintura:[], cores:[], espessuras:[], tiposIsopor:[], cidades:[], motivosReprovacao:[], paginaAtual:'dashboard', configMetas:{} };
 let graficos = {};
+let modoGraficoOrcadoConvertido = 'valor'; // 'valor' ou 'percentual'
 let itensBuilder = [];
 let leadArrastando = null;
 
@@ -1545,6 +1558,7 @@ async function iniciarApp(){
   document.getElementById('perfil-usuario-lateral').textContent = estado.usuario.perfil;
   document.getElementById('avatar-usuario').textContent = estado.usuario.nome.substring(0,2).toUpperCase();
   construirNavLateral();
+  ajustarOffsetTopo();
   try{
     await carregarDadosIniciais();
     // Carrega config de metas do mês atual (agora compartilhada via Supabase)
@@ -1564,6 +1578,11 @@ async function iniciarApp(){
 /* =====================================================================
    NAVEGAÇÃO
 ===================================================================== */
+function ajustarOffsetTopo(){
+  const topo = document.querySelector('.topo');
+  if(topo) document.documentElement.style.setProperty('--topo-altura', topo.offsetHeight + 'px');
+}
+window.addEventListener('resize', ajustarOffsetTopo);
 function construirNavLateral(){
   // Usa versão com permissões (definida na seção de permissões)
   construirNavLateralComPermissoes();
@@ -1588,6 +1607,7 @@ function navegarPagina(pagina){
   if(!item) return;
   document.getElementById('titulo-pagina').textContent = item.rotulo;
   document.getElementById('desc-pagina').textContent = item.descricao;
+  ajustarOffsetTopo();
   if(pagina==='dashboard') renderizarDashboard();
   if(pagina==='analises') renderizarAnalises();
   if(pagina==='metas'){ inicializarFiltroAnoMetas(); renderizarMetas(); }
@@ -1874,22 +1894,7 @@ function renderizarDashboard(){
   desenharGrafico('grafico-faturamento','line', meses, [{label:'Faturamento', data: totaisMes, borderColor:'#2F5DA0', backgroundColor:'rgba(47,93,160,.12)', fill:true, tension:.35}]);
 
   // Orçado x Convertido em Pedido — visão mensal (Jan a Dez) do ano selecionado no filtro
-  const orcamentosDoAno = filtrarPorPermissao(estado.orcamentos).filter(o=>o.data_orcamento && Number(o.data_orcamento.split('-')[0])===anoFiltro);
-  const pedidosDoAno = filtrarPorPermissao(estado.pedidos).filter(p=>p.data_pedido && Number(p.data_pedido.split('-')[0])===anoFiltro);
-  const totalOrcadoPorMes = new Array(12).fill(0);
-  const totalConvertidoPorMes = new Array(12).fill(0);
-  orcamentosDoAno.forEach(o=>{
-    const m = Number(o.data_orcamento.split('-')[1]) - 1;
-    if(m>=0 && m<12) totalOrcadoPorMes[m] += Number(o.total||0);
-  });
-  pedidosDoAno.forEach(p=>{
-    const m = Number(p.data_pedido.split('-')[1]) - 1;
-    if(m>=0 && m<12) totalConvertidoPorMes[m] += Number(p.valor_total||0);
-  });
-  desenharGrafico('grafico-orcado-convertido','bar', MESES_ABREV, [
-    {label:'Total Orçado', data: totalOrcadoPorMes, backgroundColor:'#93B4E8', borderRadius:6},
-    {label:'Convertido em Pedido', data: totalConvertidoPorMes, backgroundColor:'#2F5DA0', borderRadius:6}
-  ]);
+  renderizarGraficoOrcadoConvertido();
 
   // Motivos de perda (orçamentos reprovados no período selecionado)
   const orcReprovados = listaOrcamentosPeriodo.filter(o=>o.status==='reprovado');
@@ -1946,6 +1951,85 @@ function desenharGrafico(idCanvas, tipo, rotulos, datasets){
       }
     }
   });
+}
+
+/* =====================================================================
+   GRÁFICO — Orçado x Convertido em Pedido (Dashboard)
+===================================================================== */
+function alternarModoGraficoOrcadoConvertido(modo){
+  modoGraficoOrcadoConvertido = modo;
+  const btnValor = document.getElementById('btn-orcconv-valor');
+  const btnPct = document.getElementById('btn-orcconv-pct');
+  if(btnValor) btnValor.className = 'btn btn-sm ' + (modo==='valor' ? 'btn-primario' : 'btn-fantasma');
+  if(btnPct) btnPct.className = 'btn btn-sm ' + (modo==='percentual' ? 'btn-primario' : 'btn-fantasma');
+  renderizarGraficoOrcadoConvertido();
+}
+function renderizarGraficoOrcadoConvertido(){
+  const canvas = document.getElementById('grafico-orcado-convertido');
+  if(!canvas) return;
+  const { anoFiltro } = obterFiltroDashboard();
+  const orcamentosDoAno = filtrarPorPermissao(estado.orcamentos).filter(o=>o.data_orcamento && Number(o.data_orcamento.split('-')[0])===anoFiltro);
+  const pedidosDoAno = filtrarPorPermissao(estado.pedidos).filter(p=>p.data_pedido && Number(p.data_pedido.split('-')[0])===anoFiltro);
+  const totalOrcadoPorMes = new Array(12).fill(0);
+  const totalConvertidoPorMes = new Array(12).fill(0);
+  orcamentosDoAno.forEach(o=>{
+    const m = Number(o.data_orcamento.split('-')[1]) - 1;
+    if(m>=0 && m<12) totalOrcadoPorMes[m] += Number(o.total||0);
+  });
+  pedidosDoAno.forEach(p=>{
+    const m = Number(p.data_pedido.split('-')[1]) - 1;
+    if(m>=0 && m<12) totalConvertidoPorMes[m] += Number(p.valor_total||0);
+  });
+
+  if(graficos['grafico-orcado-convertido']) graficos['grafico-orcado-convertido'].destroy();
+
+  if(modoGraficoOrcadoConvertido === 'percentual'){
+    const pctPorMes = totalOrcadoPorMes.map((v,i)=> v>0 ? (totalConvertidoPorMes[i]/v*100) : 0);
+    graficos['grafico-orcado-convertido'] = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: MESES_ABREV, datasets: [
+        { label:'% Convertido em Pedido', data: pctPorMes, backgroundColor:'#2F5DA0', borderRadius:6 }
+      ]},
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display:false },
+          datalabels: {
+            display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+            color: '#1A1F2B', font: { size:10, weight:'700' }, anchor:'end', align:'top', offset:2,
+            formatter: v => v>0 ? v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%' : ''
+          }
+        },
+        scales: {
+          y: { beginAtZero:true, ticks:{ font:{size:11}, callback:v=>v+'%' } },
+          x: { ticks:{ font:{size:11} } }
+        }
+      }
+    });
+  } else {
+    graficos['grafico-orcado-convertido'] = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: MESES_ABREV, datasets: [
+        { label:'Total Orçado', data: totalOrcadoPorMes, backgroundColor:'#93B4E8', borderRadius:6 },
+        { label:'Convertido em Pedido', data: totalConvertidoPorMes, backgroundColor:'#2F5DA0', borderRadius:6 }
+      ]},
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display:true, position:'bottom', labels:{ boxWidth:10, font:{size:11} } },
+          datalabels: {
+            display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+            color: '#1A1F2B', font: { size:9, weight:'700' }, anchor:'end', align:'top', offset:2,
+            formatter: v => v>0 ? formatarMoeda(v) : ''
+          }
+        },
+        scales: {
+          y: { beginAtZero:true, ticks:{ font:{size:11} } },
+          x: { ticks:{ font:{size:11} } }
+        }
+      }
+    });
+  }
 }
 
 /* =====================================================================
@@ -4102,9 +4186,11 @@ function produtosHtmlDe(orcamentoId){
 }
 function antecipacaoHtmlDe(p){
   if(!p.valor_antecipacao && !p.data_antecipacao) return '<span style="color:var(--texto-suave);font-size:11.5px;">—</span>';
+  const hoje = new Date().toISOString().slice(0,10);
+  const venceu = p.data_antecipacao && p.data_antecipacao <= hoje;
   return `<div style="font-size:11.5px;white-space:nowrap;">
       <strong>${formatarMoeda(p.valor_antecipacao||0)}</strong>
-      ${p.data_antecipacao ? `<div style="color:var(--texto-suave);">${formatarData(p.data_antecipacao)}</div>` : ''}
+      ${p.data_antecipacao ? `<div style="color:${venceu?'var(--vermelho)':'var(--texto-suave)'};font-weight:${venceu?'700':'400'};">${formatarData(p.data_antecipacao)}</div>` : ''}
     </div>`;
 }
 function freteHtmlDe(o){
