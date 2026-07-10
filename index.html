@@ -1377,6 +1377,48 @@ tbody tr:hover{background:#FAFBFD;}
   </div>
 </div>
 
+<div class="overlay-modal" id="modal-antecipacao">
+  <div class="caixa-modal" style="max-width:440px;">
+    <div class="cabecalho-modal">
+      <h2>💰 Antecipação</h2>
+      <button class="fechar-modal" onclick="fecharModal('modal-antecipacao')">✕</button>
+    </div>
+    <div class="corpo-modal">
+      <input type="hidden" id="antecipacao-tipo">
+      <input type="hidden" id="antecipacao-registro-id">
+      <div id="antecipacao-ref-info" style="padding:10px 14px;background:var(--azul-claro);border-radius:9px;margin-bottom:16px;font-size:13px;font-weight:600;color:var(--azul-escuro);"></div>
+      <div style="display:flex;gap:10px;">
+        <div class="campo" style="flex:1;"><label>Valor da Antecipação (R$)</label><input type="number" step="0.01" min="0" id="ant-valor" placeholder="0,00"></div>
+        <div class="campo" style="flex:1;"><label>Data da Antecipação</label><input type="date" id="ant-data"></div>
+      </div>
+      <div class="campo"><label>Forma de Pagamento</label>
+        <select id="ant-forma-pagamento">
+          <option value="">Selecione...</option>
+          <option value="Pix">Pix</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="Cartão de Débito">Cartão de Débito</option>
+          <option value="Transferência/TED">Transferência/TED</option>
+          <option value="Boleto">Boleto</option>
+          <option value="Cheque">Cheque</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--texto-suave);margin-top:4px;">
+        <input type="checkbox" id="ant-recebida" style="width:16px;height:16px;">
+        ✓ Já foi recebida
+      </label>
+    </div>
+    <div class="rodape-modal" style="justify-content:space-between;">
+      <button class="btn btn-fantasma" id="btn-ant-remover" onclick="removerAntecipacaoRapida()" style="color:var(--vermelho);">✕ Remover</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-fantasma" onclick="fecharModal('modal-antecipacao')">Cancelar</button>
+        <button class="btn btn-primario" onclick="salvarAntecipacaoRapida()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =====================================================================
    CONFIGURAÇÃO SUPABASE
@@ -4236,8 +4278,11 @@ function produtosHtmlDe(orcamentoId){
     (restantes>0 ? `<br><span style="color:var(--texto-suave);">+${restantes} ${restantes===1?'item':'itens'}</span>` : '') +
     `</div>`;
 }
-function antecipacaoHtmlDe(o){
-  if(!o.valor_antecipacao && !o.data_antecipacao) return '<span style="color:var(--texto-suave);font-size:11.5px;">—</span>';
+function antecipacaoHtmlDe(o, tipo){
+  const semDados = !o.valor_antecipacao && !o.data_antecipacao;
+  if(semDados){
+    return `<button class="btn btn-sm btn-fantasma" onclick="abrirModalAntecipacao('${tipo}','${o.id}')" style="padding:4px 9px;font-size:11px;white-space:nowrap;">+ Antecipação</button>`;
+  }
   const hoje = new Date().toISOString().slice(0,10);
   const venceu = o.data_antecipacao && o.data_antecipacao <= hoje;
   const recebida = !!o.antecipacao_recebida;
@@ -4248,10 +4293,77 @@ function antecipacaoHtmlDe(o){
       : `<span style="color:var(--texto-suave);">Aguardando</span>`;
   return `<div style="font-size:11.5px;white-space:nowrap;">
       <strong>${formatarMoeda(o.valor_antecipacao||0)}</strong>
+      <button class="icone-btn" title="Editar antecipação" onclick="abrirModalAntecipacao('${tipo}','${o.id}')" style="width:20px;height:20px;padding:2px;vertical-align:middle;margin-left:2px;">${ICONE_EDITAR}</button>
       ${o.data_antecipacao ? `<div style="color:${(venceu&&!recebida)?'var(--vermelho)':'var(--texto-suave)'};font-weight:${(venceu&&!recebida)?'700':'400'};">${formatarData(o.data_antecipacao)}</div>` : ''}
       ${o.forma_pagamento_antecipacao ? `<div style="color:var(--texto-suave);">${escapeHtml(o.forma_pagamento_antecipacao)}</div>` : ''}
       <div style="margin-top:2px;">${statusHtml}</div>
+      ${!recebida ? `<button class="btn btn-sm btn-fantasma" onclick="marcarAntecipacaoRecebida('${tipo}','${o.id}')" style="padding:2px 8px;font-size:10.5px;margin-top:3px;">✓ Marcar recebido</button>` : ''}
     </div>`;
+}
+function abrirModalAntecipacao(tipo, id){
+  const lista = tipo==='pedido' ? estado.pedidos : estado.orcamentos;
+  const registro = lista.find(x=>x.id===id);
+  if(!registro) return;
+  document.getElementById('antecipacao-tipo').value = tipo;
+  document.getElementById('antecipacao-registro-id').value = id;
+  const rotulo = tipo==='pedido' ? `Pedido #${registro.numero}` : `Orçamento #${registro.numero}`;
+  const nomeCliente = tipo==='pedido' ? nomeClientePedido(registro) : nomeClienteOrcamento(registro);
+  document.getElementById('antecipacao-ref-info').textContent = `${rotulo} — ${nomeCliente}`;
+  document.getElementById('ant-valor').value = registro.valor_antecipacao||'';
+  document.getElementById('ant-data').value = registro.data_antecipacao||'';
+  document.getElementById('ant-forma-pagamento').value = registro.forma_pagamento_antecipacao||'';
+  document.getElementById('ant-recebida').checked = !!registro.antecipacao_recebida;
+  const temAntecipacao = !!(registro.valor_antecipacao || registro.data_antecipacao);
+  document.getElementById('btn-ant-remover').style.display = temAntecipacao ? '' : 'none';
+  abrirModal('modal-antecipacao');
+}
+async function salvarAntecipacaoRapida(){
+  const tipo = document.getElementById('antecipacao-tipo').value;
+  const id = document.getElementById('antecipacao-registro-id').value;
+  const tabela = tipo==='pedido' ? 'pedidos' : 'orcamentos';
+  const corpo = {
+    valor_antecipacao: Number(document.getElementById('ant-valor').value)||0,
+    data_antecipacao: document.getElementById('ant-data').value || null,
+    forma_pagamento_antecipacao: document.getElementById('ant-forma-pagamento').value || null,
+    antecipacao_recebida: document.getElementById('ant-recebida').checked,
+    atualizado_em: new Date().toISOString()
+  };
+  try{
+    await sb(`${tabela}?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
+    const lista = tipo==='pedido' ? estado.pedidos : estado.orcamentos;
+    const registro = lista.find(x=>x.id===id);
+    if(registro) Object.assign(registro, corpo);
+    notif('Antecipação salva','sucesso');
+    fecharModal('modal-antecipacao');
+    if(tipo==='pedido') renderizarPedidos(); else renderizarOrcamentos();
+  }catch(e){ notif('Erro ao salvar: '+e.message,'erro'); }
+}
+async function removerAntecipacaoRapida(){
+  const tipo = document.getElementById('antecipacao-tipo').value;
+  const id = document.getElementById('antecipacao-registro-id').value;
+  const tabela = tipo==='pedido' ? 'pedidos' : 'orcamentos';
+  const corpo = { valor_antecipacao:null, data_antecipacao:null, forma_pagamento_antecipacao:null, antecipacao_recebida:false, atualizado_em:new Date().toISOString() };
+  try{
+    await sb(`${tabela}?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
+    const lista = tipo==='pedido' ? estado.pedidos : estado.orcamentos;
+    const registro = lista.find(x=>x.id===id);
+    if(registro) Object.assign(registro, corpo);
+    notif('Antecipação removida','sucesso');
+    fecharModal('modal-antecipacao');
+    if(tipo==='pedido') renderizarPedidos(); else renderizarOrcamentos();
+  }catch(e){ notif('Erro ao remover: '+e.message,'erro'); }
+}
+async function marcarAntecipacaoRecebida(tipo, id){
+  const tabela = tipo==='pedido' ? 'pedidos' : 'orcamentos';
+  const corpo = { antecipacao_recebida:true, atualizado_em:new Date().toISOString() };
+  try{
+    await sb(`${tabela}?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
+    const lista = tipo==='pedido' ? estado.pedidos : estado.orcamentos;
+    const registro = lista.find(x=>x.id===id);
+    if(registro) Object.assign(registro, corpo);
+    notif('Antecipação marcada como recebida','sucesso');
+    if(tipo==='pedido') renderizarPedidos(); else renderizarOrcamentos();
+  }catch(e){ notif('Erro ao atualizar: '+e.message,'erro'); }
 }
 function freteHtmlDe(o){
   const freteTipo = o?.tipo_frete || 'FOB';
@@ -4307,7 +4419,7 @@ function renderizarOrcamentos(){
       <td>${freteHtml}</td>
       <td>${produtosHtmlDe(o.id)}</td>
       <td>${corHtml}</td>
-      <td>${antecipacaoHtmlDe(o)}</td>
+      <td>${antecipacaoHtmlDe(o, 'orcamento')}</td>
       <td><strong>${formatarMoeda(o.total)}</strong></td>
       <td>
         <select class="select-status-inline ${SELO_STATUS_ORC[o.status]}" onchange="mudarStatusOrcamentoInline('${o.id}', this.value, this)">
@@ -4697,7 +4809,7 @@ function renderizarPedidos(){
       <td>${freteHtmlDe(orc||{})}</td>
       <td>${produtosHtmlDe(p.orcamento_id)}</td>
       <td>${corHtmlDe(p.orcamento_id)}</td>
-      <td>${antecipacaoHtmlDe(p)}</td>
+      <td>${antecipacaoHtmlDe(p, 'pedido')}</td>
       <td><strong>${formatarMoeda(p.valor_total)}</strong></td>
       <td><span class="selo ${SELO_STATUS_PED[p.status]}">${ROTULO_STATUS_PED[p.status]}</span></td>
       <td><div class="acoes-linha">
