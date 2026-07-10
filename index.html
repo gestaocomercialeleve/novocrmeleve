@@ -933,6 +933,13 @@ tbody tr:hover{background:#FAFBFD;}
     <div class="corpo-modal">
       <input type="hidden" id="cadastro-simples-id">
       <div class="campo"><label id="label-cadastro-simples-nome">Nome *</label><input type="text" id="cadastro-simples-nome"></div>
+      <div class="campo" id="campo-cadastro-simples-hex" style="display:none;">
+        <label>Cor (para o gráfico e orçamento) *</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="color" id="cadastro-simples-hex" value="#2F5DA0" style="width:46px;height:38px;padding:2px;border:1.5px solid var(--borda);border-radius:8px;cursor:pointer;background:#FBFCFE;">
+          <input type="text" id="cadastro-simples-hex-texto" placeholder="#2F5DA0" maxlength="7" style="flex:1;text-transform:uppercase;" oninput="sincronizarHexTexto(this.value)">
+        </div>
+      </div>
       <div class="campo"><label>Status</label>
         <select id="cadastro-simples-ativo">
           <option value="true">Ativo</option>
@@ -1893,6 +1900,11 @@ function desenharGrafico(idCanvas, tipo, rotulos, datasets){
    Gráficos de barras mensais (Jan–Dez) com filtro por ano
 ===================================================================== */
 const PALETA_GRAFICOS = ['#2F5DA0','#1F9D55','#E0A526','#6655C8','#D6453F','#3E72B8','#5B9BD5','#8E7CC3','#E07B53','#4FA8A0','#C2860F','#9DB4DA'];
+// Busca o hex cadastrado para uma cor pelo nome (usado para colorir o gráfico "Cor por Mês" com a cor real)
+function corHexPorNome(nome){
+  const c = (estado.cores||[]).find(x=>x.nome===nome);
+  return (c && c.hex) ? c.hex : null;
+}
 const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
 
@@ -1971,7 +1983,7 @@ function contarPorCategoria(lista, obterChave){
   return mapa;
 }
 
-function desenharGraficoCategoriaPorMes(idCanvas, tituloId, itens, obterChave, labelCateg, obterMes, mesFiltro){
+function desenharGraficoCategoriaPorMes(idCanvas, tituloId, itens, obterChave, labelCateg, obterMes, mesFiltro, obterCorCategoria){
   // Se mês específico → gráfico de rosca (distribuição por categoria)
   // Se "todos os meses" → gráfico de barras agrupadas por mês
   if(mesFiltro && mesFiltro > 0){
@@ -1998,13 +2010,14 @@ function desenharGraficoCategoriaPorMes(idCanvas, tituloId, itens, obterChave, l
       return;
     }
 
+    const coresFatias = categorias.map((cat,i)=> (obterCorCategoria && obterCorCategoria(cat)) || PALETA_GRAFICOS[i % PALETA_GRAFICOS.length]);
     graficos[idCanvas] = new Chart(canvas, {
       type: 'doughnut',
       data: {
         labels: categorias,
         datasets: [{
           data: valores,
-          backgroundColor: PALETA_GRAFICOS.slice(0, categorias.length),
+          backgroundColor: coresFatias,
           borderWidth: 2,
           borderColor: '#fff'
         }]
@@ -2031,7 +2044,7 @@ function desenharGraficoCategoriaPorMes(idCanvas, tituloId, itens, obterChave, l
       const el = document.getElementById(tituloId);
       if(el) el.textContent = labelCateg + ' por Mês';
     }
-    desenharGraficoBarraMensal(idCanvas, contarPorCategoriaMensal(itens, obterChave, obterMes));
+    desenharGraficoBarraMensal(idCanvas, contarPorCategoriaMensal(itens, obterChave, obterMes), obterCorCategoria);
   }
 }
 
@@ -2076,7 +2089,7 @@ function contarPorCategoriaMensal(lista, obterChave, obterMes){
 }
 
 // Desenha gráfico de barras agrupadas por mês, uma série por categoria
-function desenharGraficoBarraMensal(idCanvas, mapaCategorias){
+function desenharGraficoBarraMensal(idCanvas, mapaCategorias, obterCorCategoria){
   const canvas = document.getElementById(idCanvas);
   if(!canvas) return;
   if(graficos[idCanvas]) graficos[idCanvas].destroy();
@@ -2096,7 +2109,7 @@ function desenharGraficoBarraMensal(idCanvas, mapaCategorias){
   const datasets = categorias.map((cat, idx)=>({
     label: cat,
     data: mapaCategorias[cat],
-    backgroundColor: PALETA_GRAFICOS[idx % PALETA_GRAFICOS.length],
+    backgroundColor: (obterCorCategoria && obterCorCategoria(cat)) || PALETA_GRAFICOS[idx % PALETA_GRAFICOS.length],
     borderRadius: 4,
     borderSkipped: false,
   }));
@@ -2369,7 +2382,7 @@ function renderizarAnalises(){
   }
 
   desenharGraficoCategoriaPorMes('grafico-itens-pintura',  'titulo-grafico-pintura',  itensVisiveis, i=>i.tipo_pintura_nome||null, 'Tipo de Pintura', obterMesItem, modoCategoria ? mesFiltro||1 : 0);
-  desenharGraficoCategoriaPorMes('grafico-itens-cor',      'titulo-grafico-cor',      itensVisiveis, i=>i.cor_nome||null,          'Cor',             obterMesItem, modoCategoria ? mesFiltro||1 : 0);
+  desenharGraficoCategoriaPorMes('grafico-itens-cor',      'titulo-grafico-cor',      itensVisiveis, i=>i.cor_nome||null,          'Cor',             obterMesItem, modoCategoria ? mesFiltro||1 : 0, corHexPorNome);
   desenharGraficoCategoriaPorMes('grafico-itens-espessura','titulo-grafico-espessura',itensVisiveis, i=>i.espessura_nome||null,     'Espessura',       obterMesItem, modoCategoria ? mesFiltro||1 : 0);
   desenharGraficoCategoriaPorMes('grafico-itens-isopor',   'titulo-grafico-isopor',   itensVisiveis, i=>i.tipo_isopor_nome||null,   'Tipo de Isopor',  obterMesItem, modoCategoria ? mesFiltro||1 : 0);
 }
@@ -4106,10 +4119,13 @@ function renderizarItensBuilder(){
         <button class="icone-btn perigo" type="button" onclick="removerLinhaItem(${idx})">${ICONE_X}</button>
       </div>
       <div class="linha-item-orc-atributos">
-        <select onchange="mudarAtributoItem(${idx}, 'cor', this.value)">
-          <option value="">Cor...</option>
-          ${estado.cores.filter(c=>c.ativo).map(c=>`<option value="${c.id}" ${c.id===it.cor_id?'selected':''}>${escapeHtml(c.nome)}</option>`).join('')}
-        </select>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="swatch-cor-item-${idx}" style="flex-shrink:0;display:inline-block;width:20px;height:20px;border-radius:5px;border:1px solid rgba(0,0,0,.12);background:${(estado.cores.find(c=>c.id===it.cor_id)||{}).hex||'#fff'};"></span>
+          <select style="flex:1;" onchange="mudarAtributoItem(${idx}, 'cor', this.value)">
+            <option value="">Cor...</option>
+            ${estado.cores.filter(c=>c.ativo).map(c=>`<option value="${c.id}" ${c.id===it.cor_id?'selected':''}>${escapeHtml(c.nome)}</option>`).join('')}
+          </select>
+        </div>
         <select onchange="mudarAtributoItem(${idx}, 'espessura', this.value)">
           <option value="">Espessura...</option>
           ${estado.espessuras.filter(e=>e.ativo).map(e=>`<option value="${e.id}" ${e.id===it.espessura_id?'selected':''}>${escapeHtml(e.nome)}</option>`).join('')}
@@ -4136,7 +4152,13 @@ function mudarProdutoItem(idx, produtoId){
 }
 function mudarQtdItem(idx, valor){ itensBuilder[idx].quantidade = Number(valor)||0; renderizarItensBuilder(); }
 function mudarPrecoItem(idx, valor){ itensBuilder[idx].preco_unitario = Number(valor)||0; renderizarItensBuilder(); }
-function mudarAtributoItem(idx, campo, valor){ itensBuilder[idx][campo+'_id'] = valor; }
+function mudarAtributoItem(idx, campo, valor){
+  itensBuilder[idx][campo+'_id'] = valor;
+  if(campo==='cor'){
+    const swatch = document.getElementById('swatch-cor-item-'+idx);
+    if(swatch){ const cor = estado.cores.find(c=>c.id===valor); swatch.style.background = cor?.hex || '#fff'; }
+  }
+}
 function recalcularTotalOrcamento(){
   const subtotal = itensBuilder.reduce((s,it)=>s+(Number(it.quantidade)*Number(it.preco_unitario)),0);
   const desconto = Number(document.getElementById('orcamento-desconto').value)||0;
@@ -4595,7 +4617,7 @@ async function excluirUsuario(id){
 const CADASTROS_SIMPLES = {
   origens_lead:  { tabela:'origens_lead',  rotulo:'Origem do Lead', rotuloCampo:'Nome da origem *',  estadoChave:'origensLead' },
   tipos_pintura: { tabela:'tipos_pintura', rotulo:'Tipo de Pintura', rotuloCampo:'Tipo de pintura *', estadoChave:'tiposPintura' },
-  cores:         { tabela:'cores',         rotulo:'Cor',             rotuloCampo:'Nome da cor *',     estadoChave:'cores' },
+  cores:         { tabela:'cores',         rotulo:'Cor',             rotuloCampo:'Nome da cor *',     estadoChave:'cores', temCor:true },
   espessuras:    { tabela:'espessuras',    rotulo:'Espessura',       rotuloCampo:'Espessura *',       estadoChave:'espessuras' },
   tipos_isopor:  { tabela:'tipos_isopor',  rotulo:'Tipo de Isopor',  rotuloCampo:'Tipo de isopor *',  estadoChave:'tiposIsopor' },
   cidades:       { tabela:'cidades',       rotulo:'Cidade',          rotuloCampo:'Nome da cidade *',  estadoChave:'cidades' },
@@ -4623,7 +4645,7 @@ function renderizarCadastros(){
   const corpo = document.getElementById('tbody-cadastro-simples');
   if(!lista.length){ corpo.innerHTML = `<tr><td colspan="3"><div class="vazio">Nenhum registro cadastrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(item=>`<tr>
-      <td><strong>${escapeHtml(item.nome)}</strong></td>
+      <td><strong>${cfg.temCor?`<span style="display:inline-block;width:13px;height:13px;border-radius:4px;border:1px solid rgba(0,0,0,.12);vertical-align:middle;margin-right:8px;background:${item.hex||'#CBD5E1'};"></span>`:''}${escapeHtml(item.nome)}</strong></td>
       <td>${item.ativo?'<span class="selo selo-verde">Ativo</span>':'<span class="selo selo-cinza">Inativo</span>'}</td>
       <td><div class="acoes-linha">
         <button class="icone-btn" title="Editar" onclick="abrirModalCadastroSimples('${item.id}')">${ICONE_EDITAR}</button>
@@ -4634,24 +4656,51 @@ function abrirModalCadastroSimples(id){
   const cfg = CADASTROS_SIMPLES[abaCadastroAtual];
   document.getElementById('label-cadastro-simples-nome').textContent = cfg.rotuloCampo;
   document.getElementById('titulo-modal-cadastro-simples').textContent = id ? ('Editar '+cfg.rotulo) : ('Novo: '+cfg.rotulo);
+  document.getElementById('campo-cadastro-simples-hex').style.display = cfg.temCor ? '' : 'none';
   if(id){
     const item = (estado[cfg.estadoChave]||[]).find(x=>x.id===id);
     document.getElementById('cadastro-simples-id').value = item.id;
     document.getElementById('cadastro-simples-nome').value = item.nome||'';
     document.getElementById('cadastro-simples-ativo').value = String(!!item.ativo);
+    if(cfg.temCor){
+      const hex = item.hex || '#2F5DA0';
+      document.getElementById('cadastro-simples-hex').value = hex;
+      document.getElementById('cadastro-simples-hex-texto').value = hex;
+    }
   } else {
     document.getElementById('cadastro-simples-id').value='';
     document.getElementById('cadastro-simples-nome').value='';
     document.getElementById('cadastro-simples-ativo').value='true';
+    if(cfg.temCor){
+      document.getElementById('cadastro-simples-hex').value = '#2F5DA0';
+      document.getElementById('cadastro-simples-hex-texto').value = '#2F5DA0';
+    }
   }
   abrirModal('modal-cadastro-simples');
 }
+// Mantém os dois campos de cor (seletor visual e texto) sincronizados
+function sincronizarHexTexto(valor){
+  let v = (valor||'').trim();
+  if(v && !v.startsWith('#')) v = '#'+v;
+  if(/^#[0-9A-Fa-f]{6}$/.test(v)) document.getElementById('cadastro-simples-hex').value = v;
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  const seletorHex = document.getElementById('cadastro-simples-hex');
+  if(seletorHex) seletorHex.addEventListener('input', function(){
+    document.getElementById('cadastro-simples-hex-texto').value = this.value;
+  });
+});
 async function salvarCadastroSimples(){
   const cfg = CADASTROS_SIMPLES[abaCadastroAtual];
   const id = document.getElementById('cadastro-simples-id').value;
   const nome = document.getElementById('cadastro-simples-nome').value.trim();
   if(!nome){ notif('Preencha o nome.','erro'); return; }
   const corpo = { nome, ativo: document.getElementById('cadastro-simples-ativo').value==='true' };
+  if(cfg.temCor){
+    const hex = document.getElementById('cadastro-simples-hex-texto').value.trim() || document.getElementById('cadastro-simples-hex').value;
+    if(!/^#[0-9A-Fa-f]{6}$/.test(hex)){ notif('Informe uma cor válida (ex: #2F5DA0).','erro'); return; }
+    corpo.hex = hex.toUpperCase();
+  }
   try{
     if(id) await sb(`${cfg.tabela}?id=eq.${id}`, {metodo:'PATCH', corpo, cabecalhos:{Prefer:'return=minimal'}});
     else await sb(cfg.tabela, {metodo:'POST', corpo, cabecalhos:{Prefer:'return=minimal'}});
