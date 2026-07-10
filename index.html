@@ -175,7 +175,7 @@ input,select,textarea{font-family:inherit;}
 }
 .busca-filtros input[type=text]{min-width:220px;}
 
-.tabela-wrap{background:var(--branco);border:1px solid var(--borda);border-radius:14px;overflow:hidden;box-shadow:var(--sombra);}
+.tabela-wrap{background:var(--branco);border:1px solid var(--borda);border-radius:14px;overflow-x:auto;overflow-y:hidden;box-shadow:var(--sombra);}
 table{width:100%;border-collapse:collapse;font-size:13.5px;}
 thead th{
   text-align:left;padding:13px 16px;background:#F8FAFC;color:var(--texto-suave);
@@ -776,7 +776,7 @@ tbody tr:hover{background:#FAFBFD;}
           <div class="tabela-wrap">
             <table>
               <thead><tr>
-                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Lead Time</th><th>Frete</th><th>Cor</th><th>Total</th><th>Status</th><th>Follow-up</th><th></th>
+                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Data</th><th>Validade</th><th>Lead Time</th><th>Frete</th><th>Produtos</th><th>Cor</th><th>Total</th><th>Status</th><th>Follow-up</th><th></th>
               </tr></thead>
               <tbody id="tbody-orcamentos"></tbody>
             </table>
@@ -867,7 +867,7 @@ tbody tr:hover{background:#FAFBFD;}
           <div class="tabela-wrap">
             <table>
               <thead><tr>
-                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Pedido em</th><th>Previsão</th><th>Frete</th><th>Cor</th><th>Valor</th><th>Status</th><th></th>
+                <th>Nº</th><th>Cliente</th><th>Vendedor</th><th>Pedido em</th><th>Previsão</th><th>Frete</th><th>Produtos</th><th>Cor</th><th>Antecipação</th><th>Valor</th><th>Status</th><th></th>
               </tr></thead>
               <tbody id="tbody-pedidos"></tbody>
             </table>
@@ -1203,6 +1203,19 @@ tbody tr:hover{background:#FAFBFD;}
         </select>
       </div>
       <div class="campo"><label>Previsão de entrega</label><input type="date" id="pedido-previsao"></div>
+      <div class="campo" style="border-top:1px solid var(--borda);padding-top:14px;">
+        <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span>Cobrança</span>
+          <button type="button" class="btn btn-sm btn-fantasma" id="btn-toggle-antecipacao" onclick="alternarBlocoAntecipacao()" style="padding:4px 10px;font-size:12px;">+ Adicionar Antecipação</button>
+        </label>
+        <div id="bloco-antecipacao" style="display:none;">
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;"><label style="font-size:12px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:6px;">Valor da Antecipação (R$)</label><input type="number" step="0.01" min="0" id="pedido-valor-antecipacao" placeholder="0,00"></div>
+            <div style="flex:1;"><label style="font-size:12px;color:var(--texto-suave);font-weight:600;display:block;margin-bottom:6px;">Data da Antecipação</label><input type="date" id="pedido-data-antecipacao"></div>
+          </div>
+          <button type="button" class="btn btn-sm btn-fantasma" onclick="removerBlocoAntecipacao()" style="margin-top:4px;color:var(--vermelho);padding:4px 10px;font-size:12px;">✕ Remover antecipação</button>
+        </div>
+      </div>
       <div class="campo"><label>Observações</label><textarea id="pedido-observacoes"></textarea></div>
     </div>
     <div class="rodape-modal">
@@ -4051,6 +4064,25 @@ function renderizarOrcamentosKpiCards(lista){
     kpiCard('Quantidade de Orçamentos', lista.length, '') +
     kpiCard('Total de Frete (R$)', formatarMoeda(totalFrete), 'roxo');
 }
+function produtosHtmlDe(orcamentoId){
+  const itens = orcamentoId ? itensDoOrcamento(orcamentoId) : [];
+  if(!itens.length) return '<span style="color:var(--texto-suave);font-size:11.5px;">—</span>';
+  const linhas = itens.map(i=>`${Number(i.quantidade)||0}x ${i.produto_nome||'Item'}`);
+  const maxVisiveis = 3;
+  const visiveis = linhas.slice(0, maxVisiveis);
+  const restantes = linhas.length - visiveis.length;
+  return `<div title="${escapeHtml(linhas.join(' • '))}" style="font-size:11.5px;line-height:1.5;min-width:130px;">` +
+    visiveis.map(l=>escapeHtml(l)).join('<br>') +
+    (restantes>0 ? `<br><span style="color:var(--texto-suave);">+${restantes} ${restantes===1?'item':'itens'}</span>` : '') +
+    `</div>`;
+}
+function antecipacaoHtmlDe(p){
+  if(!p.valor_antecipacao && !p.data_antecipacao) return '<span style="color:var(--texto-suave);font-size:11.5px;">—</span>';
+  return `<div style="font-size:11.5px;white-space:nowrap;">
+      <strong>${formatarMoeda(p.valor_antecipacao||0)}</strong>
+      ${p.data_antecipacao ? `<div style="color:var(--texto-suave);">${formatarData(p.data_antecipacao)}</div>` : ''}
+    </div>`;
+}
 function freteHtmlDe(o){
   const freteTipo = o?.tipo_frete || 'FOB';
   return freteTipo==='CIF'
@@ -4082,7 +4114,7 @@ function renderizarOrcamentos(){
   _atualizarBadgePeriodo('orc-periodo-badge', 'orc');
   renderizarOrcamentosKpiCards(lista);
   const corpo = document.getElementById('tbody-orcamentos');
-  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="12"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="13"><div class="vazio">Nenhum orçamento encontrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(o=>{
     const followups = carregarFollowUps('orcamento', o.id);
     const ultimoFu = followups.length ? followups[followups.length-1] : null;
@@ -4103,6 +4135,7 @@ function renderizarOrcamentos(){
       <td>${formatarData(o.validade)}</td>
       <td>${leadTimeBadge(o.data_orcamento)}</td>
       <td>${freteHtml}</td>
+      <td>${produtosHtmlDe(o.id)}</td>
       <td>${corHtml}</td>
       <td><strong>${formatarMoeda(o.total)}</strong></td>
       <td>
@@ -4472,7 +4505,7 @@ function renderizarPedidos(){
   _atualizarBadgePeriodo('ped-periodo-badge', 'ped');
   renderizarPedidosKpiCards(lista);
   const corpo = document.getElementById('tbody-pedidos');
-  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="10"><div class="vazio">Nenhum pedido encontrado.</div></td></tr>`; return; }
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="12"><div class="vazio">Nenhum pedido encontrado.</div></td></tr>`; return; }
   corpo.innerHTML = lista.map(p=>{
     const orc = estado.orcamentos.find(o=>o.id===p.orcamento_id);
     return `<tr>
@@ -4482,7 +4515,9 @@ function renderizarPedidos(){
       <td>${formatarData(p.data_pedido)}</td>
       <td>${formatarData(p.previsao_entrega)}</td>
       <td>${freteHtmlDe(orc||{})}</td>
+      <td>${produtosHtmlDe(p.orcamento_id)}</td>
       <td>${corHtmlDe(p.orcamento_id)}</td>
+      <td>${antecipacaoHtmlDe(p)}</td>
       <td><strong>${formatarMoeda(p.valor_total)}</strong></td>
       <td><span class="selo ${SELO_STATUS_PED[p.status]}">${ROTULO_STATUS_PED[p.status]}</span></td>
       <td><div class="acoes-linha">
@@ -4492,20 +4527,41 @@ function renderizarPedidos(){
       </div></td></tr>`;
   }).join('');
 }
+function alternarBlocoAntecipacao(){
+  const bloco = document.getElementById('bloco-antecipacao');
+  const btn = document.getElementById('btn-toggle-antecipacao');
+  const mostrar = bloco.style.display === 'none';
+  bloco.style.display = mostrar ? 'block' : 'none';
+  btn.style.display = mostrar ? 'none' : '';
+}
+function removerBlocoAntecipacao(){
+  document.getElementById('pedido-valor-antecipacao').value = '';
+  document.getElementById('pedido-data-antecipacao').value = '';
+  document.getElementById('bloco-antecipacao').style.display = 'none';
+  document.getElementById('btn-toggle-antecipacao').style.display = '';
+}
 function abrirModalPedido(id){
   const p = estado.pedidos.find(x=>x.id===id);
   document.getElementById('pedido-id').value = p.id;
   document.getElementById('pedido-status').value = p.status;
   document.getElementById('pedido-previsao').value = p.previsao_entrega||'';
   document.getElementById('pedido-observacoes').value = p.observacoes||'';
+  document.getElementById('pedido-valor-antecipacao').value = p.valor_antecipacao||'';
+  document.getElementById('pedido-data-antecipacao').value = p.data_antecipacao||'';
+  const temAntecipacao = !!(p.valor_antecipacao || p.data_antecipacao);
+  document.getElementById('bloco-antecipacao').style.display = temAntecipacao ? 'block' : 'none';
+  document.getElementById('btn-toggle-antecipacao').style.display = temAntecipacao ? 'none' : '';
   abrirModal('modal-pedido');
 }
 async function salvarPedido(){
   const id = document.getElementById('pedido-id').value;
+  const antecipacaoVisivel = document.getElementById('bloco-antecipacao').style.display !== 'none';
   const corpo = {
     status: document.getElementById('pedido-status').value,
     previsao_entrega: document.getElementById('pedido-previsao').value || null,
     observacoes: document.getElementById('pedido-observacoes').value || null,
+    valor_antecipacao: antecipacaoVisivel ? (Number(document.getElementById('pedido-valor-antecipacao').value)||0) : null,
+    data_antecipacao: antecipacaoVisivel ? (document.getElementById('pedido-data-antecipacao').value || null) : null,
     atualizado_em: new Date().toISOString()
   };
   try{
