@@ -904,6 +904,93 @@ tbody tr:hover{background:#FAFBFD;}
           </div>
         </section>
 
+        <!-- ============================== ATENDIMENTO PRESENCIAL ============================== -->
+        <section class="pagina" id="pagina-atendimento-presencial">
+
+          <!-- Cronômetro + dados do atendimento em andamento -->
+          <div class="painel" id="ap-painel-cronometro" style="margin-bottom:18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+              <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+                <div>
+                  <label style="display:block;font-size:12px;font-weight:600;color:var(--texto-suave);margin-bottom:5px;">Nº do atendimento</label>
+                  <input type="text" id="ap-numero" readonly style="width:150px;padding:9px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:14px;font-weight:700;background:var(--azul-claro2);color:var(--azul);">
+                </div>
+                <div>
+                  <label style="display:block;font-size:12px;font-weight:600;color:var(--texto-suave);margin-bottom:5px;">Cliente</label>
+                  <div id="ap-cliente-nome" style="padding:9px 0;font-size:14px;font-weight:700;min-width:160px;">—</div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:12px;font-weight:600;color:var(--texto-suave);margin-bottom:5px;">Vendedora</label>
+                  <div id="ap-vendedor-nome" style="padding:9px 0;font-size:14px;font-weight:700;min-width:140px;">—</div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:12px;font-weight:600;color:var(--texto-suave);margin-bottom:5px;">Status</label>
+                  <span class="selo" id="ap-status-badge">—</span>
+                </div>
+              </div>
+              <div style="text-align:center;">
+                <div id="ap-cronometro-display" style="font-size:42px;font-weight:800;color:var(--azul);font-variant-numeric:tabular-nums;letter-spacing:.02em;">00:00:00</div>
+                <div style="display:flex;gap:8px;margin-top:8px;justify-content:center;">
+                  <button class="btn btn-sm btn-primario" id="ap-btn-iniciar" onclick="apIniciarCronometro()">▶ Iniciar</button>
+                  <button class="btn btn-sm btn-secundario" id="ap-btn-pausar" onclick="apPausarCronometro()" style="display:none;">⏸ Pausar</button>
+                  <button class="btn btn-sm btn-secundario" id="ap-btn-retomar" onclick="apRetomarCronometro()" style="display:none;">▶ Retomar</button>
+                  <button class="btn btn-sm" id="ap-btn-finalizar" onclick="apFinalizarAtendimento()" style="background:var(--verde);color:#fff;border:none;display:none;">✔ Finalizar Atendimento</button>
+                </div>
+              </div>
+            </div>
+            <p id="ap-sem-atendimento-msg" style="margin:14px 0 0;font-size:12.5px;color:var(--texto-suave);">Nenhum atendimento presencial em andamento. Marque "Atendimento presencial? Sim" ao lançar um orçamento para iniciar automaticamente, ou selecione um atendimento na lista abaixo.</p>
+          </div>
+
+          <!-- Filtros -->
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--azul-claro2);border-radius:10px;border:1px solid var(--borda);margin-bottom:16px;">
+            <label style="font-size:12.5px;font-weight:600;color:var(--texto-suave);">Filtros:</label>
+            <select id="ap-filtro-ano" onchange="renderizarAtendimentoPresencial()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;"></select>
+            <select id="ap-filtro-mes" onchange="renderizarAtendimentoPresencial()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;">
+              <option value="">Todos os meses</option>
+              <option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option>
+              <option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option>
+              <option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option>
+              <option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+            </select>
+            <select id="ap-filtro-vendedor" onchange="renderizarAtendimentoPresencial()" style="padding:7px 12px;border:1.5px solid var(--borda);border-radius:8px;font-size:13px;background:#fff;font-weight:600;">
+              <option value="">Todas as vendedoras</option>
+            </select>
+            <button class="btn btn-sm btn-fantasma" onclick="apLimparFiltros()" style="padding:6px 12px;font-size:12px;">✕ Limpar</button>
+          </div>
+
+          <div class="grade-kpi" id="ap-kpi-cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;"></div>
+
+          <div class="grade-graficos" style="margin-bottom:16px;">
+            <div class="painel">
+              <h3>Nº de Atendimentos Presenciais — Jan a Dez</h3>
+              <canvas id="ap-grafico-quantidade" style="max-height:300px;"></canvas>
+            </div>
+            <div class="painel">
+              <h3>Tempo Total de Atendimento por Mês (horas)</h3>
+              <canvas id="ap-grafico-tempo-total" style="max-height:300px;"></canvas>
+            </div>
+          </div>
+          <div class="grade-graficos" style="margin-bottom:16px;">
+            <div class="painel">
+              <h3>Tempo Médio de Atendimento por Mês (minutos)</h3>
+              <canvas id="ap-grafico-tempo-medio" style="max-height:300px;"></canvas>
+            </div>
+            <div class="painel">
+              <h3>Orçamentos Aprovados por Mês (via atendimento presencial)</h3>
+              <canvas id="ap-grafico-aprovados" style="max-height:300px;"></canvas>
+            </div>
+          </div>
+
+          <div class="tabela-wrap">
+            <table>
+              <thead><tr>
+                <th>Nº</th><th>Cliente</th><th>Vendedora</th><th>Data</th><th>Duração</th><th>Status Orçamento</th><th>Situação</th><th></th>
+              </tr></thead>
+              <tbody id="tbody-atendimento-presencial"></tbody>
+            </table>
+          </div>
+        </section>
+
         <!-- ============================== CALENDÁRIO DE ANTECIPAÇÕES ============================== -->
         <section class="pagina" id="pagina-calendario-antecipacoes">
           <div class="cabecalho-sticky-lista">
@@ -1169,6 +1256,16 @@ tbody tr:hover{background:#FAFBFD;}
           </select>
         </div>
       </div>
+      <div class="linha-campos">
+        <div class="campo">
+          <label>Atendimento presencial?</label>
+          <select id="orcamento-atendimento-presencial">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+        <div class="campo"></div>
+      </div>
       <div class="linha-campos" id="linha-motivo-reprovacao" style="display:none;">
         <div class="campo" style="flex:1;">
           <input type="hidden" id="orcamento-motivo-reprovacao">
@@ -1416,7 +1513,7 @@ const ICONE_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" str
 /* =====================================================================
    ESTADO GLOBAL
 ===================================================================== */
-let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], origensLead:[], tiposPintura:[], cores:[], espessuras:[], tiposIsopor:[], cidades:[], motivosReprovacao:[], paginaAtual:'dashboard', configMetas:{} };
+let estado = { usuario:null, usuarios:[], clientes:[], produtos:[], leads:[], orcamentos:[], itensOrcamento:[], pedidos:[], origensLead:[], tiposPintura:[], cores:[], espessuras:[], tiposIsopor:[], cidades:[], motivosReprovacao:[], atendimentosPresenciais:[], paginaAtual:'dashboard', configMetas:{} };
 let graficos = {};
 let modoGraficoOrcadoConvertido = 'valor'; // 'valor' ou 'percentual'
 let itensBuilder = [];
@@ -1432,6 +1529,7 @@ const ITENS_NAV = [
   {id:'orcamentos', rotulo:'Orçamentos', descricao:'Monte, envie e acompanhe propostas', icone:ICONE_ORCAMENTOS, perfis:['admin','gerente','vendedor']},
   {id:'orcamentos_reprovados', rotulo:'Orçamentos Reprovados', descricao:'Propostas reprovadas pelo cliente', icone:ICONE_X, perfis:['admin','gerente','vendedor']},
   {id:'pedidos', rotulo:'Pedidos', descricao:'Status de produção e entrega', icone:ICONE_PEDIDOS, perfis:['admin','gerente','vendedor']},
+  {id:'atendimento-presencial', rotulo:'Atendimento Presencial', descricao:'Cronômetro, indicadores e histórico de atendimentos presenciais', icone:'🎫', perfis:['admin','gerente','vendedor']},
   {id:'calendario-antecipacoes', rotulo:'Antecipações', descricao:'Calendário de antecipações lançadas em orçamentos e pedidos', icone:'📅', perfis:['admin','gerente','vendedor']},
   {id:'cadastros', rotulo:'Cadastros', descricao:'Origem, pintura, cor, espessura e isopor', icone:ICONE_CADASTROS, perfis:['admin','gerente']},
   {id:'config-metas', rotulo:'Config. Metas', descricao:'Defina metas mensais e distribua por vendedor', icone:ICONE_METAS, perfis:['admin','gerente']},
@@ -1674,6 +1772,7 @@ function navegarPagina(pagina){
   if(pagina==='orcamentos') renderizarOrcamentos();
   if(pagina==='orcamentos_reprovados') renderizarOrcamentosReprovados();
   if(pagina==='pedidos') renderizarPedidos();
+  if(pagina==='atendimento-presencial') renderizarAtendimentoPresencial();
   if(pagina==='calendario-antecipacoes') renderizarCalendarioAntecipacoes();
   if(pagina==='cadastros') renderizarCadastros();
   if(pagina==='usuarios') renderizarUsuarios();
@@ -1702,6 +1801,12 @@ async function carregarDadosIniciais(){
     sb('cidades?select=*&order=nome.asc'),
     sb('motivos_reprovacao?select=*&order=nome.asc'),
   ]);
+  let atendimentosPresenciais = [];
+  try{
+    atendimentosPresenciais = await sb('atendimentos_presenciais?select=*&order=numero.desc');
+  }catch(e){
+    console.warn('Tabela atendimentos_presenciais ainda não existe no Supabase.', e.message);
+  }
   estado.usuarios = usuarios || [];
   estado.clientes = clientes || [];
   estado.produtos = produtos || [];
@@ -1716,6 +1821,7 @@ async function carregarDadosIniciais(){
   estado.tiposIsopor = tiposIsopor || [];
   estado.cidades = cidades || [];
   estado.motivosReprovacao = motivosReprovacao || [];
+  estado.atendimentosPresenciais = atendimentosPresenciais || [];
 
   // Config de metas: agora fica na tabela config_metas (compartilhada entre todos
   // os usuários e dispositivos). Se a tabela ainda não existir no Supabase, não
@@ -4498,6 +4604,7 @@ function renderizarOrcamentos(){
         <button class="icone-btn" title="Gerar PDF" onclick="gerarPDFOrcamento('${o.id}')">${ICONE_PDF}</button>
         <button class="icone-btn" title="Editar" onclick="abrirModalOrcamento('${o.id}')">${ICONE_EDITAR}</button>
         <button class="icone-btn followup" title="Follow-up: registrar contato" onclick="abrirFollowUp('${o.id}','orcamento')">${ICONE_FOLLOWUP}</button>
+        ${o.atendimento_presencial ? `<button class="icone-btn" title="Atendimento presencial" onclick="iniciarOuAbrirAtendimentoPresencial('${o.id}')">🎫</button>`:''}
         ${o.status==='aprovado' && !pedidoExisteParaOrcamento(o.id) ? `<button class="icone-btn" title="Gerar pedido" onclick="gerarPedidoDeOrcamento('${o.id}')">${ICONE_PEDIDOS}</button>`:''}
         ${['aguardando_cliente','em_andamento','reprovado','aprovado'].includes(o.status)?`<button class="icone-btn reverter" title="Reverter para rascunho" onclick="reverterOrcamento('${o.id}')">${ICONE_REVERTER}</button>`:''}
         ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="excluirOrcamento('${o.id}')">${ICONE_LIXEIRA}</button>`:''}
@@ -4554,6 +4661,7 @@ function abrirModalOrcamento(id){
     document.getElementById('orcamento-tipo-frete').value = o.tipo_frete||'FOB';
     document.getElementById('orcamento-valor-frete').value = o.valor_frete||0;
     document.getElementById('orcamento-observacoes').value = o.observacoes||'';
+    document.getElementById('orcamento-atendimento-presencial').value = o.atendimento_presencial ? 'sim' : 'nao';
     itensBuilder = itensDoOrcamento(o.id).map(i=>({
       produto_id:i.produto_id, quantidade:Number(i.quantidade), preco_unitario:Number(i.preco_unitario),
       cor_id:i.cor_id||'', espessura_id:i.espessura_id||'', tipo_pintura_id:i.tipo_pintura_id||'', tipo_isopor_id:i.tipo_isopor_id||''
@@ -4574,6 +4682,7 @@ function abrirModalOrcamento(id){
     document.getElementById('orcamento-tipo-frete').value='FOB';
     document.getElementById('orcamento-valor-frete').value=0;
     document.getElementById('orcamento-observacoes').value='';
+    document.getElementById('orcamento-atendimento-presencial').value='nao';
     if(!podeVerTudo()) document.getElementById('orcamento-vendedor').value = estado.usuario.id;
     itensBuilder = [];
   }
@@ -4678,7 +4787,8 @@ async function salvarOrcamento(){
     tipo_frete: tipoFrete,
     valor_frete: valorFrete,
     desconto, subtotal, total,
-    observacoes: document.getElementById('orcamento-observacoes').value || null
+    observacoes: document.getElementById('orcamento-observacoes').value || null,
+    atendimento_presencial: document.getElementById('orcamento-atendimento-presencial').value === 'sim'
   };
   const numeroDigitado = document.getElementById('orcamento-numero').value.trim();
   if(numeroDigitado) corpoOrc.numero = numeroDigitado;
@@ -4709,7 +4819,11 @@ async function salvarOrcamento(){
     await sb('orcamento_itens', {metodo:'POST', corpo:itensParaSalvar, cabecalhos:{Prefer:'return=minimal'}});
     notif('Orçamento salvo com sucesso','sucesso');
     fecharModal('modal-orcamento');
+    const querAtendimentoPresencial = corpoOrc.atendimento_presencial === true;
     await atualizarEdRenderizar();
+    if(querAtendimentoPresencial){
+      await iniciarOuAbrirAtendimentoPresencial(orcamentoId);
+    }
   }catch(e){ notif('Erro ao salvar: '+e.message,'erro'); }
 }
 async function mudarStatusOrcamento(id, status){
@@ -4928,6 +5042,361 @@ async function reverterPedidoParaRascunho(id){
   }catch(e){ notif('Erro ao reverter: '+e.message,'erro'); }
 }
 
+/* =====================================================================
+   ATENDIMENTO PRESENCIAL
+===================================================================== */
+let apCronometro = { atendimentoId:null, rodando:false, inicioTs:null, acumuladoMs:0, intervalo:null };
+
+function apGerarNumero(){
+  const nums = (estado.atendimentosPresenciais||[]).map(a=>Number(a.numero)||0);
+  const max = nums.length ? Math.max(...nums) : 0;
+  return String(max+1).padStart(4,'0');
+}
+
+// Chamado ao salvar um orçamento marcado como "atendimento presencial: sim"
+async function iniciarOuAbrirAtendimentoPresencial(orcamentoId){
+  const o = estado.orcamentos.find(x=>x.id===orcamentoId);
+  if(!o){ notif('Orçamento não encontrado para iniciar o atendimento.','erro'); return; }
+  try{
+    let atendimento = (estado.atendimentosPresenciais||[]).find(a=>a.orcamento_id===orcamentoId);
+    if(!atendimento){
+      const corpo = {
+        orcamento_id: orcamentoId,
+        numero: apGerarNumero(),
+        vendedor_id: o.vendedor_id || estado.usuario.id,
+        cliente_nome: o.cliente_nome_manual || nomeClienteOrcamento(o),
+        data_atendimento: new Date().toISOString().slice(0,10),
+        status: 'em_andamento',
+        duracao_segundos: 0
+      };
+      const criado = await sb('atendimentos_presenciais', {metodo:'POST', corpo, cabecalhos:{Prefer:'return=representation'}});
+      atendimento = criado[0];
+      estado.atendimentosPresenciais.unshift(atendimento);
+    }
+    navegarPagina('atendimento-presencial');
+    apAbrirAtendimento(atendimento.id);
+  }catch(e){
+    notif('Erro ao iniciar atendimento presencial: '+e.message+' — verifique se a tabela "atendimentos_presenciais" existe no Supabase.','erro');
+  }
+}
+
+function apAbrirAtendimento(atendimentoId){
+  const a = estado.atendimentosPresenciais.find(x=>x.id===atendimentoId);
+  if(!a) return;
+  apPararIntervaloVisual();
+  apCronometro = {
+    atendimentoId: a.id,
+    rodando: a.status==='em_andamento',
+    inicioTs: a.status==='em_andamento' ? Date.now() : null,
+    acumuladoMs: Number(a.duracao_segundos||0)*1000,
+    intervalo: null
+  };
+  document.getElementById('ap-numero').value = '#'+a.numero;
+  document.getElementById('ap-cliente-nome').textContent = a.cliente_nome || '—';
+  document.getElementById('ap-vendedor-nome').textContent = nomeUsuario(a.vendedor_id);
+  const badge = document.getElementById('ap-status-badge');
+  badge.textContent = a.status==='concluido' ? 'Concluído' : (a.status==='em_andamento' ? 'Em andamento' : 'Pausado');
+  badge.className = 'selo ' + (a.status==='concluido' ? 'selo-verde' : (a.status==='em_andamento' ? 'selo-azul' : 'selo-amarelo'));
+  document.getElementById('ap-sem-atendimento-msg').style.display = 'none';
+
+  const btnIniciar = document.getElementById('ap-btn-iniciar');
+  const btnPausar = document.getElementById('ap-btn-pausar');
+  const btnRetomar = document.getElementById('ap-btn-retomar');
+  const btnFinalizar = document.getElementById('ap-btn-finalizar');
+  btnIniciar.style.display = 'none';
+  if(a.status==='concluido'){
+    btnPausar.style.display='none'; btnRetomar.style.display='none'; btnFinalizar.style.display='none';
+  } else if(a.status==='em_andamento'){
+    btnPausar.style.display=''; btnRetomar.style.display='none'; btnFinalizar.style.display='';
+    apIniciarIntervaloVisual();
+  } else {
+    btnPausar.style.display='none'; btnRetomar.style.display=''; btnFinalizar.style.display='';
+  }
+  apAtualizarDisplay();
+}
+
+function apFormatarTempo(ms){
+  const totalSeg = Math.floor(ms/1000);
+  const h = String(Math.floor(totalSeg/3600)).padStart(2,'0');
+  const m = String(Math.floor((totalSeg%3600)/60)).padStart(2,'0');
+  const s = String(totalSeg%60).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+function apMsAtual(){
+  if(apCronometro.rodando && apCronometro.inicioTs){
+    return apCronometro.acumuladoMs + (Date.now()-apCronometro.inicioTs);
+  }
+  return apCronometro.acumuladoMs;
+}
+function apAtualizarDisplay(){
+  const el = document.getElementById('ap-cronometro-display');
+  if(el) el.textContent = apFormatarTempo(apMsAtual());
+}
+function apIniciarIntervaloVisual(){
+  apPararIntervaloVisual();
+  apCronometro.intervalo = setInterval(apAtualizarDisplay, 250);
+}
+function apPararIntervaloVisual(){
+  if(apCronometro.intervalo){ clearInterval(apCronometro.intervalo); apCronometro.intervalo=null; }
+}
+
+async function apIniciarCronometro(){
+  // Cria um atendimento avulso (sem orçamento vinculado) caso o usuário inicie manualmente
+  try{
+    const corpo = {
+      numero: apGerarNumero(),
+      vendedor_id: estado.usuario.id,
+      cliente_nome: null,
+      data_atendimento: new Date().toISOString().slice(0,10),
+      status: 'em_andamento',
+      duracao_segundos: 0
+    };
+    const criado = await sb('atendimentos_presenciais', {metodo:'POST', corpo, cabecalhos:{Prefer:'return=representation'}});
+    estado.atendimentosPresenciais.unshift(criado[0]);
+    apAbrirAtendimento(criado[0].id);
+    renderizarAtendimentoPresencial();
+  }catch(e){
+    notif('Erro ao iniciar atendimento: '+e.message+' — verifique se a tabela "atendimentos_presenciais" existe no Supabase.','erro');
+  }
+}
+
+async function apPausarCronometro(){
+  if(!apCronometro.atendimentoId) return;
+  apCronometro.acumuladoMs = apMsAtual();
+  apCronometro.rodando = false;
+  apCronometro.inicioTs = null;
+  apPararIntervaloVisual();
+  document.getElementById('ap-btn-pausar').style.display='none';
+  document.getElementById('ap-btn-retomar').style.display='';
+  const badge = document.getElementById('ap-status-badge');
+  badge.textContent='Pausado'; badge.className='selo selo-amarelo';
+  try{
+    await sb(`atendimentos_presenciais?id=eq.${apCronometro.atendimentoId}`, {metodo:'PATCH', corpo:{status:'pausado', duracao_segundos: Math.floor(apCronometro.acumuladoMs/1000)}, cabecalhos:{Prefer:'return=minimal'}});
+    const a = estado.atendimentosPresenciais.find(x=>x.id===apCronometro.atendimentoId);
+    if(a){ a.status='pausado'; a.duracao_segundos = Math.floor(apCronometro.acumuladoMs/1000); }
+  }catch(e){ notif('Erro ao pausar: '+e.message,'erro'); }
+}
+
+async function apRetomarCronometro(){
+  if(!apCronometro.atendimentoId) return;
+  apCronometro.rodando = true;
+  apCronometro.inicioTs = Date.now();
+  apIniciarIntervaloVisual();
+  document.getElementById('ap-btn-pausar').style.display='';
+  document.getElementById('ap-btn-retomar').style.display='none';
+  const badge = document.getElementById('ap-status-badge');
+  badge.textContent='Em andamento'; badge.className='selo selo-azul';
+  try{
+    await sb(`atendimentos_presenciais?id=eq.${apCronometro.atendimentoId}`, {metodo:'PATCH', corpo:{status:'em_andamento'}, cabecalhos:{Prefer:'return=minimal'}});
+    const a = estado.atendimentosPresenciais.find(x=>x.id===apCronometro.atendimentoId);
+    if(a){ a.status='em_andamento'; }
+  }catch(e){ notif('Erro ao retomar: '+e.message,'erro'); }
+}
+
+async function apFinalizarAtendimento(){
+  if(!apCronometro.atendimentoId) return;
+  if(!confirm('Finalizar este atendimento presencial? O cronômetro será encerrado.')) return;
+  const duracaoFinal = Math.floor(apMsAtual()/1000);
+  apCronometro.rodando = false;
+  apPararIntervaloVisual();
+  try{
+    await sb(`atendimentos_presenciais?id=eq.${apCronometro.atendimentoId}`, {metodo:'PATCH', corpo:{status:'concluido', duracao_segundos: duracaoFinal}, cabecalhos:{Prefer:'return=minimal'}});
+    const a = estado.atendimentosPresenciais.find(x=>x.id===apCronometro.atendimentoId);
+    if(a){ a.status='concluido'; a.duracao_segundos = duracaoFinal; }
+    notif('Atendimento finalizado','sucesso');
+    apCronometro = { atendimentoId:null, rodando:false, inicioTs:null, acumuladoMs:0, intervalo:null };
+    renderizarAtendimentoPresencial();
+  }catch(e){ notif('Erro ao finalizar: '+e.message,'erro'); }
+}
+
+function apLimparFiltros(){
+  document.getElementById('ap-filtro-ano').value = new Date().getFullYear();
+  document.getElementById('ap-filtro-mes').value = '';
+  document.getElementById('ap-filtro-vendedor').value = '';
+  renderizarAtendimentoPresencial();
+}
+
+function apPreencherFiltros(){
+  const selAno = document.getElementById('ap-filtro-ano');
+  if(selAno && selAno.options.length <= 1){
+    const anos = new Set();
+    const anoAtual = new Date().getFullYear();
+    (estado.atendimentosPresenciais||[]).forEach(a=>{ if(a.data_atendimento) anos.add(Number(a.data_atendimento.split('-')[0])); });
+    anos.add(anoAtual);
+    const lista = [...anos].sort((a,b)=>b-a);
+    selAno.innerHTML = '<option value="">Todos os anos</option>' + lista.map(a=>`<option value="${a}" ${a===anoAtual?'selected':''}>${a}</option>`).join('');
+  }
+  const selVend = document.getElementById('ap-filtro-vendedor');
+  if(selVend){
+    const atual = selVend.value;
+    const vendedores = filtrarPorPermissao(estado.usuarios.filter(u=>u.perfil==='vendedor' && u.ativo));
+    selVend.innerHTML = '<option value="">Todas as vendedoras</option>' +
+      vendedores.map(v=>`<option value="${v.id}" ${v.id===atual?'selected':''}>${escapeHtml(v.nome)}</option>`).join('');
+  }
+}
+
+function apOrcamentoDoAtendimento(a){
+  return a.orcamento_id ? estado.orcamentos.find(o=>o.id===a.orcamento_id) : null;
+}
+
+function renderizarAtendimentoPresencial(){
+  apPreencherFiltros();
+
+  // Restaura o painel do cronômetro se houver um atendimento em andamento/pausado
+  if(apCronometro.atendimentoId){
+    apAbrirAtendimento(apCronometro.atendimentoId);
+  } else {
+    const emAberto = (estado.atendimentosPresenciais||[]).find(a=>a.status==='em_andamento' || a.status==='pausado');
+    if(emAberto) apAbrirAtendimento(emAberto.id);
+    else document.getElementById('ap-sem-atendimento-msg').style.display = '';
+  }
+
+  const anoEl = document.getElementById('ap-filtro-ano');
+  const mesEl = document.getElementById('ap-filtro-mes');
+  const vendEl = document.getElementById('ap-filtro-vendedor');
+  const ano = anoEl && anoEl.value ? Number(anoEl.value) : null;
+  const mes = mesEl && mesEl.value ? Number(mesEl.value) : null;
+  const vendedorFiltro = vendEl ? vendEl.value : '';
+
+  let lista = filtrarPorPermissao(estado.atendimentosPresenciais||[]);
+  if(vendedorFiltro) lista = lista.filter(a=>a.vendedor_id===vendedorFiltro);
+
+  // Lista filtrada pelo ano (para os gráficos anuais Jan-Dez)
+  const listaAno = ano ? lista.filter(a=>a.data_atendimento && Number(a.data_atendimento.split('-')[0])===ano) : lista;
+  // Lista filtrada por ano + mês (para os KPIs e tabela)
+  let listaKpi = listaAno;
+  if(mes) listaKpi = listaKpi.filter(a=>a.data_atendimento && Number(a.data_atendimento.split('-')[1])===mes);
+
+  renderizarApKpiCards(listaKpi);
+  renderizarApTabela(listaKpi);
+  renderizarApGraficos(listaAno);
+}
+
+function renderizarApKpiCards(lista){
+  const el = document.getElementById('ap-kpi-cards');
+  if(!el) return;
+  const qtd = lista.length;
+  const tempoTotalSeg = lista.reduce((s,a)=>s+Number(a.duracao_segundos||0),0);
+  const tempoMedioSeg = qtd>0 ? tempoTotalSeg/qtd : 0;
+  const aprovados = lista.filter(a=>{
+    const o = apOrcamentoDoAtendimento(a);
+    return o && o.status==='aprovado';
+  }).length;
+  const formatarHoras = seg => {
+    const h = Math.floor(seg/3600), m = Math.floor((seg%3600)/60);
+    return `${h}h ${String(m).padStart(2,'0')}m`;
+  };
+  const kpiCard = (rotulo, valor, cor='') => `<div class="cartao-kpi">
+      <div class="rotulo">${rotulo}</div>
+      <div class="valor ${cor}">${valor}</div>
+    </div>`;
+  el.innerHTML =
+    kpiCard('Nº de Atendimentos', qtd, 'azul') +
+    kpiCard('Tempo Total de Atendimento', formatarHoras(tempoTotalSeg), 'roxo') +
+    kpiCard('Tempo Médio de Atendimento', formatarHoras(tempoMedioSeg), 'amarelo') +
+    kpiCard('Orçamentos Aprovados', aprovados, 'verde');
+}
+
+function renderizarApTabela(lista){
+  const corpo = document.getElementById('tbody-atendimento-presencial');
+  if(!corpo) return;
+  if(!lista.length){ corpo.innerHTML = `<tr><td colspan="8"><div class="vazio">Nenhum atendimento presencial encontrado.</div></td></tr>`; return; }
+  const ordenada = [...lista].sort((a,b)=>(b.data_atendimento||'').localeCompare(a.data_atendimento||''));
+  corpo.innerHTML = ordenada.map(a=>{
+    const o = apOrcamentoDoAtendimento(a);
+    const dur = a.duracao_segundos||0;
+    const h = Math.floor(dur/3600), m = Math.floor((dur%3600)/60), s = dur%60;
+    const duracaoFmt = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const situacao = a.status==='concluido' ? 'Concluído' : (a.status==='em_andamento' ? 'Em andamento' : 'Pausado');
+    const seloSituacao = a.status==='concluido' ? 'selo-verde' : (a.status==='em_andamento' ? 'selo-azul' : 'selo-amarelo');
+    return `<tr>
+      <td>#${a.numero}</td>
+      <td>${escapeHtml(a.cliente_nome||'—')}</td>
+      <td>${escapeHtml(nomeUsuario(a.vendedor_id))}</td>
+      <td>${formatarData(a.data_atendimento)}</td>
+      <td>${duracaoFmt}</td>
+      <td>${o ? `<span class="selo ${SELO_STATUS_ORC[o.status]}">${ROTULO_STATUS_ORC[o.status]}</span>` : '—'}</td>
+      <td><span class="selo ${seloSituacao}">${situacao}</span></td>
+      <td><div class="acoes-linha">
+        <button class="icone-btn" title="Abrir" onclick="navegarPagina('atendimento-presencial');apAbrirAtendimento('${a.id}')">${ICONE_EDITAR}</button>
+        ${isAdmin()?`<button class="icone-btn perigo" title="Excluir" onclick="apExcluirAtendimento('${a.id}')">${ICONE_LIXEIRA}</button>`:''}
+      </div></td></tr>`;
+  }).join('');
+}
+
+async function apExcluirAtendimento(id){
+  if(!confirm('Excluir este registro de atendimento presencial?')) return;
+  try{
+    await sb(`atendimentos_presenciais?id=eq.${id}`, {metodo:'DELETE', cabecalhos:{Prefer:'return=minimal'}});
+    notif('Atendimento excluído','sucesso');
+    if(apCronometro.atendimentoId===id) apCronometro = { atendimentoId:null, rodando:false, inicioTs:null, acumuladoMs:0, intervalo:null };
+    await atualizarEdRenderizar();
+  }catch(e){ notif('Erro ao excluir: '+e.message,'erro'); }
+}
+
+function renderizarApGraficos(listaAno){
+  const porMesQtd = Array(12).fill(0);
+  const porMesTempoSeg = Array(12).fill(0);
+  const porMesAprovados = Array(12).fill(0);
+  listaAno.forEach(a=>{
+    if(!a.data_atendimento) return;
+    const mesIdx = Number(a.data_atendimento.split('-')[1]) - 1;
+    if(mesIdx<0 || mesIdx>11) return;
+    porMesQtd[mesIdx]++;
+    porMesTempoSeg[mesIdx] += Number(a.duracao_segundos||0);
+    const o = apOrcamentoDoAtendimento(a);
+    if(o && o.status==='aprovado') porMesAprovados[mesIdx]++;
+  });
+  const porMesTempoMedioMin = porMesTempoSeg.map((seg,i)=> porMesQtd[i]>0 ? (seg/porMesQtd[i])/60 : 0);
+  const porMesTempoTotalH = porMesTempoSeg.map(seg=> seg/3600);
+
+  const destruir = id => { if(graficos[id]){ graficos[id].destroy(); delete graficos[id]; } };
+
+  destruir('ap-grafico-quantidade');
+  const cv1 = document.getElementById('ap-grafico-quantidade');
+  if(cv1){
+    graficos['ap-grafico-quantidade'] = new Chart(cv1, {
+      type:'bar',
+      data:{ labels: MESES_ABREV, datasets:[{ label:'Atendimentos', data: porMesQtd, backgroundColor:'#2F5DA0', borderRadius:5 }] },
+      options:{ responsive:true, plugins:{ legend:{display:false}, datalabels:{ display:v=>v.dataset.data[v.dataIndex]>0, anchor:'end', align:'top', color:'#1A1F2B', font:{size:9,weight:'700'}, formatter:v=>v>0?v:'' } },
+        scales:{ x:{ticks:{font:{size:11}},grid:{display:false}}, y:{beginAtZero:true, ticks:{precision:0,font:{size:11}}} } }
+    });
+  }
+
+  destruir('ap-grafico-tempo-total');
+  const cv2 = document.getElementById('ap-grafico-tempo-total');
+  if(cv2){
+    graficos['ap-grafico-tempo-total'] = new Chart(cv2, {
+      type:'bar',
+      data:{ labels: MESES_ABREV, datasets:[{ label:'Tempo total (h)', data: porMesTempoTotalH, backgroundColor:'#6655C8', borderRadius:5 }] },
+      options:{ responsive:true, plugins:{ legend:{display:false}, datalabels:{ display:v=>v.dataset.data[v.dataIndex]>0, anchor:'end', align:'top', color:'#1A1F2B', font:{size:9,weight:'700'}, formatter:v=>v>0?v.toFixed(1)+'h':'' } },
+        scales:{ x:{ticks:{font:{size:11}},grid:{display:false}}, y:{beginAtZero:true, ticks:{font:{size:11}}} } }
+    });
+  }
+
+  destruir('ap-grafico-tempo-medio');
+  const cv3 = document.getElementById('ap-grafico-tempo-medio');
+  if(cv3){
+    graficos['ap-grafico-tempo-medio'] = new Chart(cv3, {
+      type:'line',
+      data:{ labels: MESES_ABREV, datasets:[{ label:'Tempo médio (min)', data: porMesTempoMedioMin, borderColor:'#E0A526', backgroundColor:'rgba(224,165,38,.15)', fill:true, tension:.3, pointRadius:3 }] },
+      options:{ responsive:true, plugins:{ legend:{display:false}, datalabels:{ display:v=>v.dataset.data[v.dataIndex]>0, align:'top', color:'#1A1F2B', font:{size:9,weight:'700'}, formatter:v=>v>0?v.toFixed(1)+'m':'' } },
+        scales:{ x:{ticks:{font:{size:11}},grid:{display:false}}, y:{beginAtZero:true, ticks:{font:{size:11}}} } }
+    });
+  }
+
+  destruir('ap-grafico-aprovados');
+  const cv4 = document.getElementById('ap-grafico-aprovados');
+  if(cv4){
+    graficos['ap-grafico-aprovados'] = new Chart(cv4, {
+      type:'bar',
+      data:{ labels: MESES_ABREV, datasets:[{ label:'Orçamentos aprovados', data: porMesAprovados, backgroundColor:'#1F9D55', borderRadius:5 }] },
+      options:{ responsive:true, plugins:{ legend:{display:false}, datalabels:{ display:v=>v.dataset.data[v.dataIndex]>0, anchor:'end', align:'top', color:'#1A1F2B', font:{size:9,weight:'700'}, formatter:v=>v>0?v:'' } },
+        scales:{ x:{ticks:{font:{size:11}},grid:{display:false}}, y:{beginAtZero:true, ticks:{precision:0,font:{size:11}}} } }
+    });
+  }
+}
+
 
 /* =====================================================================
    PERMISSÕES POR VENDEDOR
@@ -4943,6 +5412,7 @@ const PAGINAS_DISPONIVEIS_VENDEDOR = [
   {id:'orcamentos', rotulo:'Orçamentos',      icone:'📄'},
   {id:'orcamentos_reprovados', rotulo:'Orçamentos Reprovados', icone:'🚫'},
   {id:'pedidos',    rotulo:'Pedidos',         icone:'🚚'},
+  {id:'atendimento-presencial', rotulo:'Atendimento Presencial', icone:'🎫'},
   {id:'calendario-antecipacoes', rotulo:'Antecipações', icone:'📅'},
   {id:'analises',   rotulo:'Análises',        icone:'📈'},
 ];
@@ -4954,7 +5424,7 @@ function carregarPermissoesVendedor(vendedorId){
   }catch(e){}
   // Padrão: acesso às páginas básicas, ver apenas os próprios
   return {
-    paginas: ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos','calendario-antecipacoes'],
+    paginas: ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos','atendimento-presencial','calendario-antecipacoes'],
     verTodosClientes: false,
   };
 }
@@ -4966,7 +5436,7 @@ function salvarPermissoesVendedor(vendedorId, cfg){
 function obterPaginasVendedor(vendedorId){
   if(podeVerTudo()) return PAGINAS_DISPONIVEIS_VENDEDOR.map(p=>p.id);
   const cfg = carregarPermissoesVendedor(vendedorId);
-  return cfg.paginas || ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos','calendario-antecipacoes'];
+  return cfg.paginas || ['dashboard','metas','funil','clientes','produtos','orcamentos','orcamentos_reprovados','pedidos','atendimento-presencial','calendario-antecipacoes'];
 }
 
 function vendedorPodeVerPagina(vendedorId, paginaId){
